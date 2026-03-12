@@ -1,0 +1,13 @@
+{
+  "name": "robot-2-inspector",
+  "version": "1.0.0",
+  "description": "Smart Inspection Copilot for Licenciatec",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}

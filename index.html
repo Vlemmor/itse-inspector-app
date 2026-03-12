@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licenciatec | Smart Inspection Copilot</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="mode-architect"> <!-- Default mode: Architect -->
+    <div class="app-container">
+        <!-- Role Selector Overlay -->
+        <div id="role-selector" class="overlay">
+            <div class="selector-card glass-card">
+                <h2>Seleccione Especialidad</h2>
+                <div class="role-grid">
+                    <button class="role-btn" data-role="architect">
+                        <span class="icon">🏗️</span>
+                        <span>Arquitecto / Seguridad</span>
+                    </button>
+                    <button class="role-btn" data-role="electrical">
+                        <span class="icon">⚡</span>
+                        <span>Ingeniero Electricista</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <span class="brand">LICENCIA<span>TEC</span></span>
+                <div class="specialty-indicator" id="current-specialty">
+                    Arquitectura
+                </div>
+            </div>
+        </header>
+
+        <main class="content-area">
+            <!-- Inspector Info -->
+            <section class="inspector-card glass-card">
+                <div class="form-group">
+                    <label>Inspector Responsable</label>
+                    <input type="text" id="inspector-name" placeholder="Nombre completo">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Sede / Planta</label>
+                        <input type="text" id="site-name" placeholder="Ej. Planta Huachipa">
+                    </div>
+                    <div class="form-group">
+                        <label>Ubicación Específica</label>
+                        <input type="text" id="location-exact" placeholder="Ej. Tablero General T-1">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Active Hallazgo Feed -->
+            <section id="hallazgos-feed" class="hallazgos-container">
+                <!-- Cards will be injected here -->
+                <div class="empty-state">
+                    <div class="empty-icon">📱</div>
+                    <p>Inicie la inspección capturando una foto o dictando una observación.</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Dynamic Action Bar -->
+        <footer class="action-bar">
+            <button id="btn-camera" class="action-btn">
+                <span class="icon">📷</span>
+            </button>
+            <button id="btn-voice" class="action-btn main-action">
+                <span class="icon">🎤</span>
+                <div class="pulse-ring"></div>
+            </button>
+            <button id="btn-finish" class="action-btn">
+                <span class="icon">✅</span>
+            </button>
+        </footer>
+
+        <!-- AI Process Indicator (Toast) -->
+        <div id="ai-status" class="ai-status">
+            <span class="ai-icon">✨</span>
+            <span id="ai-msg">IA Procesando...</span>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
