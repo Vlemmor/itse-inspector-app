@@ -9,79 +9,87 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="mode-architect"> <!-- Default mode: Architect -->
+<body class="mode-architect">
     <div class="app-container">
-        <!-- Role Selector Overlay -->
-        <div id="role-selector" class="overlay">
+        <!-- STEP 1: ROLE SELECTOR -->
+        <section id="step-1" class="step-screen active">
             <div class="selector-card glass-card">
-                <h2>Seleccione Especialidad</h2>
+                <h1 class="logo-text">LICENCIA<span>TEC</span></h1>
+                <h2 style="color: #000; margin-bottom: 30px;">Seleccione Especialidad</h2>
                 <div class="role-grid">
                     <button class="role-btn" data-role="architect">
                         <span class="icon">🏗️</span>
-                        <span>Arquitecto / Seguridad</span>
+                        <span class="btn-label">Arquitectura / Seguridad</span>
                     </button>
                     <button class="role-btn" data-role="electrical">
                         <span class="icon">⚡</span>
-                        <span>Ingeniero Electricista</span>
+                        <span class="btn-label">Ingeniero Electricista</span>
                     </button>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Main Header -->
-        <header class="app-header">
-            <div class="header-content">
-                <span class="brand">LICENCIA<span>TEC</span></span>
-                <div class="specialty-indicator" id="current-specialty">
-                    Arquitectura
-                </div>
-            </div>
-        </header>
-
-        <main class="content-area">
-            <!-- Inspector Info -->
-            <section class="inspector-card glass-card">
-                <div class="form-group">
-                    <label>Inspector Responsable</label>
-                    <input type="text" id="inspector-name" placeholder="Nombre completo">
-                </div>
-                <div class="form-row">
+        <!-- STEP 2: GENERAL DATA -->
+        <section id="step-2" class="step-screen">
+            <header class="app-header">
+                <button class="btn-back">⬅️</button>
+                <span class="brand">DATOS <span>GENERALES</span></span>
+            </header>
+            <main class="form-area">
+                <div class="glass-card">
                     <div class="form-group">
                         <label>Sede / Planta</label>
                         <input type="text" id="site-name" placeholder="Ej. Planta Huachipa">
                     </div>
                     <div class="form-group">
-                        <label>Ubicación Específica</label>
-                        <input type="text" id="location-exact" placeholder="Ej. Tablero General T-1">
+                        <label>Fecha de Inspección</label>
+                        <input type="date" id="inspection-date">
+                    </div>
+                    <div class="form-group">
+                        <label>Inspector Responsable</label>
+                        <input type="text" id="inspector-name" placeholder="Nombre completo">
+                    </div>
+                    <button id="btn-start-inspection" class="btn-primary">INICIAR INSPECCIÓN</button>
+                </div>
+            </main>
+        </section>
+
+        <!-- STEP 3: INSPECTION CONSOLE -->
+        <section id="step-3" class="step-screen">
+            <header class="app-header">
+                <div class="header-content">
+                    <span class="brand">INSPEC<span>CIÓN</span></span>
+                    <div class="specialty-indicator" id="current-specialty">Arquitectura</div>
+                </div>
+            </header>
+
+            <main class="content-area">
+                <div id="hallazgos-feed" class="hallazgos-container">
+                    <div class="empty-state">
+                        <div class="empty-icon">📷</div>
+                        <p>Capture un hallazgo para comenzar</p>
                     </div>
                 </div>
-            </section>
+            </main>
 
-            <!-- Active Hallazgo Feed -->
-            <section id="hallazgos-feed" class="hallazgos-container">
-                <!-- Cards will be injected here -->
-                <div class="empty-state">
-                    <div class="empty-icon">📱</div>
-                    <p>Inicie la inspección capturando una foto o dictando una observación.</p>
+            <!-- WhatsApp Style Input Bar -->
+            <footer class="observation-bar">
+                <div class="input-container">
+                    <button id="btn-camera" class="round-icon-btn">📷</button>
+                    <input type="text" id="manual-text" placeholder="Escriba una observación...">
+                    <button id="btn-voice" class="round-icon-btn mic-btn">🎤</button>
+                    <button id="btn-send" class="round-icon-btn send-btn">➡️</button>
                 </div>
-            </section>
-        </main>
+                <div class="status-row">
+                    <button id="btn-finish" class="btn-finish-minimal">FINALIZAR INFORME ✅</button>
+                </div>
+            </footer>
+        </section>
 
-        <!-- Dynamic Action Bar -->
-        <footer class="action-bar">
-            <button id="btn-camera" class="action-btn">
-                <span class="icon">📷</span>
-            </button>
-            <button id="btn-voice" class="action-btn main-action">
-                <span class="icon">🎤</span>
-                <div class="pulse-ring"></div>
-            </button>
-            <button id="btn-finish" class="action-btn">
-                <span class="icon">✅</span>
-            </button>
-        </footer>
+        <!-- Hidden Inputs for Hardware -->
+        <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
 
-        <!-- AI Process Indicator (Toast) -->
+        <!-- AI Process Indicator -->
         <div id="ai-status" class="ai-status">
             <span class="ai-icon">✨</span>
             <span id="ai-msg">IA Procesando...</span>

@@ -52,6 +52,133 @@ h1, h2, .brand {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
+/* Step Management */
+.step-screen {
+    display: none;
+    flex-direction: column;
+    height: 100vh;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.step-screen.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Step 1: Specific Fixes */
+#step-1 {
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.logo-text {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.logo-text span { color: var(--accent-blue); }
+
+.role-btn {
+    background: #ffffff;
+    border: 3px solid #000;
+    color: #000;
+    padding: 30px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.role-btn .btn-label {
+    font-size: 1.2rem;
+    margin-top: 10px;
+}
+
+/* Step 2: Form Area */
+.form-area {
+    padding: 20px;
+    flex: 1;
+}
+
+.btn-primary {
+    width: 100%;
+    background: var(--accent-blue);
+    color: white;
+    border: none;
+    padding: 20px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.btn-back {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    margin-right: 15px;
+}
+
+/* Step 3: Observation Bar (WhatsApp Style) */
+.observation-bar {
+    background: #ffffff;
+    padding: 15px;
+    border-top: 3px solid #000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-container input {
+    flex: 1;
+    border: 2px solid #000;
+    padding: 12px 15px;
+    border-radius: 25px;
+    font-size: 1rem;
+    background: #f1f3f5;
+}
+
+.round-icon-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #000;
+    background: #fff;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mic-btn { background: #ffeb3b; }
+.send-btn { background: #007bff; color: white; }
+
+.status-row {
+    display: flex;
+    justify-content: center;
+}
+
+.btn-finish-minimal {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
 /* Overlay & Role Selector */
 .overlay {
     position: fixed;
@@ -84,28 +211,9 @@ h1, h2, .brand {
     gap: 15px;
 }
 
-.role-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 15px;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    transition: all 0.3s ease;
-}
-
-.role-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-5px);
-}
-
-.role-btn .icon {
-    font-size: 2rem;
-}
+/* The original .role-btn is replaced by the new one above */
+/* The original .role-btn:hover is removed as it's not in the new context */
+/* The original .role-btn .icon is replaced by the new one below */
 
 /* App Header */
 .app-header {
