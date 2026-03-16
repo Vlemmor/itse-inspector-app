@@ -1,4 +1,4 @@
-console.log("App v1.2 starting...");
+console.log("App v1.3 starting...");
 const state = {
     currentUser: null,
     currentReport: null,
@@ -130,12 +130,29 @@ document.getElementById('btn-save-obs').addEventListener('click', () => {
 });
 
 // --- Camera / Photo Logic ---
+const cameraInput = document.getElementById('camera-input');
 document.getElementById('btn-camera').addEventListener('click', () => {
-    // Simulate real camera trigger
-    alert('Accediendo a la cámara...');
-    const desc = document.getElementById('obs-description');
-    desc.value = "Análisis de foto: " + (state.currentUser.role === 'architect' ? "Deficiencia en acabados de muro." : "Cableado expuesto en tablero.");
-    // Simulate the click to save automatically or let user refine
+    cameraInput.click();
+});
+
+cameraInput.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+        // File picked/Photo taken
+        const desc = document.getElementById('obs-description');
+        const role = state.currentUser.role === 'architect' ? "Arquitectura" : "Electricidad";
+        desc.value = `Hallazgo de ${role}: [Describa el detalle de la foto aquí]`;
+        desc.classList.add('is-simulated'); // Mark as simulated to allow easy clear
+        // In a real app, we would upload/analyze this file
+        console.log("Photo captured:", this.files[0].name);
+    }
+});
+
+// Auto-select/clear simulated text on focus
+document.getElementById('obs-description').addEventListener('focus', function() {
+    if (this.classList.contains('is-simulated')) {
+        this.select(); // Select all so typing replaces it instantly
+        this.classList.remove('is-simulated');
+    }
 });
 
 // --- Voice Transcription (Real-time Gemini Style) ---

@@ -49,45 +49,31 @@ body {
     align-items: center;
 }
 
-.logo-main {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--lt-navy);
-    letter-spacing: -1px;
+/* Logo Styling - Image Based */
+.logo-container-main {
+    padding: 40px 20px;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
 }
 
-.logo-main span {
-    background: var(--lt-gradient);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    position: relative;
-    padding-right: 4px;
+.brand-logo-img {
+    width: 280px;
+    max-width: 80%;
+    height: auto;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
 }
 
-/* Arrow effect on 'a' */
-.logo-main span::after {
-    content: "▲";
-    position: absolute;
-    left: 17px; /* Adjusted for better alignment */
-    top: 5px;
-    font-size: 0.75rem;
-    -webkit-text-fill-color: white;
-    transform: scaleX(1.3);
+.brand-logo-small {
+    height: 32px;
+    width: auto;
 }
 
-.logo-subtext {
-    font-size: 0.65rem;
-    font-weight: 800;
-    color: var(--lt-navy);
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    text-align: center;
-    width: 100%;
-    margin-top: -4px;
+/* Observation Textarea logic */
+.is-simulated {
+    color: var(--lt-blue-royal) !important;
+    font-style: italic;
+    background: #eef4ff !important;
 }
 
 /* Console Adjustments */
