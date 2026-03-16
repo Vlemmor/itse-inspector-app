@@ -1,162 +1,256 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- State & Config ---
-    let currentRole = 'architect';
-    const hallazgos = [];
+const state = {
+    currentUser: null,
+    currentReport: null,
+    reports: [],
+    users: [
+        { user: 'admin', pass: 'admin', role: 'admin', name: 'Administrador' },
+        { user: 'arq1', pass: '123', role: 'architect', name: 'Arq. Juan Perez' },
+        { user: 'elec1', pass: '123', role: 'electrical', name: 'Ing. Maria Lopez' }
+    ]
+};
+
+// --- Navigation ---
+function showScreen(screenId) {
+    document.querySelectorAll('.step-screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(`screen-${screenId}`).classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+function openDialog(id) { document.getElementById(id).style.display = 'flex'; }
+function closeDialog(id) { document.getElementById(id).style.display = 'none'; }
+
+// --- Auth ---
+document.getElementById('btn-login').addEventListener('click', () => {
+    const userVal = document.getElementById('login-user').value;
+    const passVal = document.getElementById('login-pass').value;
     
-    const normativas = {
-        architect: [
-            { key: 'señalizacion', norma: 'RNE A.130 Prop. 2.1', desc: 'Falta de señalética reflectante.' },
-            { key: 'extintor', norma: 'RNE A.130 Art. 165', desc: 'Extintor obstruido o vencido.' },
-            { key: 'pasillo', norma: 'RNE A.010 Art. 25', desc: 'Ancho de pasillo insuficiente.' }
-        ],
-        electrical: [
-            { key: 'tablero', norma: 'CNE Utilización Art. 10.2.3', desc: 'Tablero sin mandil o señalización.' },
-            { key: 'cables', norma: 'CNE Utilización Secc. 070', desc: 'Conductores expuestos.' },
-            { key: 'pozo', norma: 'CNE Utilización Art. 060-002', desc: 'Resistencia de puesta a tierra.' }
-        ]
-    };
-
-    // --- Navigation Logic ---
-    function showStep(stepNumber) {
-        document.querySelectorAll('.step-screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(`step-${stepNumber}`).classList.add('active');
-        window.scrollTo(0, 0);
-    }
-
-    // --- UI Elements ---
-    const roleBtns = document.querySelectorAll('.role-btn');
-    const btnStart = document.getElementById('btn-start-inspection');
-    const btnBack = document.querySelector('.btn-back');
-    const specialtyIndicator = document.getElementById('current-specialty');
-    
-    // Inputs
-    const siteInput = document.getElementById('site-name');
-    const inspectorInput = document.getElementById('inspector-name');
-    const dateInput = document.getElementById('inspection-date');
-    const manualTextInput = document.getElementById('manual-text');
-    
-    // Actions
-    const btnCamera = document.getElementById('btn-camera');
-    const cameraInput = document.getElementById('camera-input');
-    const btnVoice = document.getElementById('btn-voice');
-    const btnSend = document.getElementById('btn-send');
-    const btnFinish = document.getElementById('btn-finish');
-    const feed = document.getElementById('hallazgos-feed');
-
-    // --- Step 1 -> 2 ---
-    roleBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentRole = btn.dataset.role;
-            document.body.className = `mode-${currentRole}`;
-            specialtyIndicator.textContent = currentRole === 'electrical' ? 'Ing. Electricista' : 'Arquitectura';
-            showStep(2);
-        });
-    });
-
-    // --- Step 2 -> 3 ---
-    btnStart.addEventListener('click', () => {
-        if (!siteInput.value || !inspectorInput.value) {
-            alert('Por favor complete los datos del local e inspector.');
-            return;
-        }
-        showStep(3);
-    });
-
-    btnBack.addEventListener('click', () => showStep(1));
-
-    // --- REAL HARDWARE: CAMERA ---
-    btnCamera.addEventListener('click', () => cameraInput.click());
-    cameraInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                createHallazgo(manualTextInput.value || "Captura de Hallazgo", event.target.result);
-                manualTextInput.value = '';
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        }
-    });
-
-    // --- REAL HARDWARE: VOICE-TO-TEXT ---
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'es-PE';
-        
-        btnVoice.addEventListener('click', () => {
-            recognition.start();
-            showAIStatus('Escuchando dictado...');
-        });
-
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            manualTextInput.value = transcript;
-            showAIStatus('Texto capturado ✅');
-        };
+    const user = state.users.find(u => u.user === userVal && u.pass === passVal);
+    if (user) {
+        state.currentUser = user;
+        document.getElementById('btn-goto-admin').style.display = user.role === 'admin' ? 'block' : 'none';
+        renderReports();
+        showScreen('dashboard');
     } else {
-        btnVoice.onclick = () => alert('Su navegador no soporta dictado por voz.');
+        alert('Usuario o contraseña incorrectos.');
     }
+});
 
-    // --- Observation Creation ---
-    btnSend.addEventListener('click', () => {
-        if (manualTextInput.value.trim()) {
-            createHallazgo(manualTextInput.value, null);
-            manualTextInput.value = '';
-        }
-    });
+document.getElementById('btn-logout').addEventListener('click', () => {
+    state.currentUser = null;
+    showScreen('login');
+});
 
-    function createHallazgo(text, imageSrc) {
-        showAIStatus('Analizando Normativa...');
-        
-        setTimeout(() => {
-            const normaInfo = detectNorma(text);
-            const h = { id: Date.now(), text, imageSrc, ...normaInfo };
-            renderHallazgo(h);
-            showAIStatus('Hallazgo Registrado ✨');
-        }, 800);
-    }
-
-    function detectNorma(text) {
-        const lower = text.toLowerCase();
-        const pool = normativas[currentRole];
-        return pool.find(n => lower.includes(n.key)) || { 
-            norma: currentRole === 'electrical' ? 'CNE Genérico' : 'RNE Genérico',
-            desc: 'Revisión técnica sugerida.' 
-        };
-    }
-
-    function renderHallazgo(h) {
-        const empty = feed.querySelector('.empty-state');
-        if (empty) empty.remove();
-
+// --- Dashboard & Reports ---
+function renderReports() {
+    const list = document.getElementById('reports-list');
+    list.innerHTML = state.reports.length === 0 ? '<p style="text-align:center; opacity:0.5;">No hay informes previos.</p>' : '';
+    
+    state.reports.forEach(r => {
         const card = document.createElement('div');
-        card.className = 'hallazgo-card glass-card';
+        card.className = 'm3-card';
         card.innerHTML = `
-            ${h.imageSrc ? `
-                <div class="photo-preview">
-                    <img src="${h.imageSrc}" style="width: 100%; height: 100%; object-fit: cover;">
-                    <div class="enhance-tag">AI ENHANCED</div>
-                </div>` : ''}
-            <p class="hallazgo-text">"${h.text}"</p>
-            <div class="norma-box">
-                <strong>${h.norma}</strong>
-                <p>${h.desc}</p>
+            <h3>${r.site} - ${r.date}</h3>
+            <p>Inspector: ${r.inspector}</p>
+            <div style="margin-top:12px;">
+                <button class="m3-btn-text" onclick="viewReport('${r.id}')">Visualizar</button>
+                <button class="m3-btn-filled" onclick="editReport('${r.id}')">Editar</button>
             </div>
         `;
-        feed.prepend(card);
-    }
-
-    function showAIStatus(msg) {
-        const status = document.getElementById('ai-status');
-        document.getElementById('ai-msg').textContent = msg;
-        status.classList.add('active');
-        setTimeout(() => status.classList.remove('active'), 2500);
-    }
-
-    btnFinish.addEventListener('click', () => {
-        if (confirm('¿Desea cerrar este informe?')) {
-            alert('Enviando informe a Robot 4...');
-            location.reload();
-        }
+        list.appendChild(card);
     });
+}
+
+document.getElementById('btn-new-report').addEventListener('click', () => {
+    document.getElementById('data-inspector').value = state.currentUser.name;
+    showScreen('general-data');
 });
+
+document.getElementById('btn-to-console').addEventListener('click', () => {
+    const site = document.getElementById('data-site').value;
+    if (!site) return alert('Ingrese la sede.');
+    
+    state.currentReport = {
+        id: Date.now().toString(),
+        site,
+        address: document.getElementById('data-address').value,
+        inspector: document.getElementById('data-inspector').value,
+        date: document.getElementById('data-date').value,
+        observations: []
+    };
+    
+    document.getElementById('badge-role').textContent = state.currentUser.role === 'architect' ? 'Arquitectura' : 'Electricista';
+    renderObservations();
+    showScreen('console');
+});
+
+// --- Inspection Console ---
+function renderObservations() {
+    const feed = document.getElementById('console-feed');
+    feed.innerHTML = state.currentReport.observations.length === 0 ? '<p style="text-align:center; padding:40px; opacity:0.3;">Tome una foto o dicte una observación para comenzar.</p>' : '';
+    
+    state.currentReport.observations.forEach(obs => {
+        const item = document.createElement('div');
+        item.className = 'm3-card';
+        item.innerHTML = `
+            <div style="display:flex; justify-content:space-between;">
+                <strong>Norma: ${obs.norma}</strong>
+                <span class="m3-badge" style="background:#fce8e6; color:#b3261e;">Riesgo ${obs.risk}</span>
+            </div>
+            <p style="margin:8px 0;">${obs.description}</p>
+            <p style="font-size:0.8rem; color:#666;">Recomendación: ${obs.recommendation}</p>
+        `;
+        feed.appendChild(item);
+    });
+}
+
+document.getElementById('btn-save-obs').addEventListener('click', () => {
+    const desc = document.getElementById('obs-description').value;
+    if (!desc) return;
+    
+    const obs = {
+        id: Date.now(),
+        description: desc,
+        risk: document.getElementById('obs-risk').value,
+        norma: "Detectando...",
+        recommendation: "Analizando..."
+    };
+    
+    state.currentReport.observations.push(obs);
+    document.getElementById('obs-description').value = '';
+    renderObservations();
+    
+    // Simulate AI Processing
+    setTimeout(() => {
+        obs.norma = "RNE Art. 10.2";
+        obs.recommendation = "Instalar señalización reflectante a 1.50m.";
+        renderObservations();
+    }, 1500);
+});
+
+// --- Voice Transcription (Real-time Gemini Style) ---
+let recognition;
+const previewArea = document.getElementById('transcription-preview');
+
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'es-PE';
+    
+    recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscriptChunk = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                finalTranscriptChunk += transcript + ' ';
+                document.getElementById('obs-description').value += transcript + ' ';
+            } else {
+                interimTranscript += transcript;
+            }
+        }
+        
+        previewArea.innerHTML = `<span class="interim-text">${interimTranscript}</span>`;
+        // Scroll to bottom of textarea to see new text
+        const textarea = document.getElementById('obs-description');
+        textarea.scrollTop = textarea.scrollHeight;
+    };
+
+    recognition.onend = () => {
+        previewArea.innerHTML = '';
+    };
+}
+
+document.getElementById('btn-voice').addEventListener('click', function() {
+    const isRecording = this.classList.toggle('active');
+    if (isRecording) {
+        recognition.start();
+        this.innerHTML = '🛑 DETENER';
+        this.style.background = '#d63031';
+        this.style.color = 'white';
+        previewArea.innerHTML = '<i>Escuchando...</i>';
+    } else {
+        recognition.stop();
+        this.innerHTML = '🎤 DICTAR';
+        this.style.background = '#fbcc3c';
+        this.style.color = 'black';
+        previewArea.innerHTML = '';
+    }
+});
+
+// --- Finalize ---
+document.getElementById('btn-finish-report').addEventListener('click', () => openDialog('dialog-confirm'));
+
+document.getElementById('btn-confirm-finish').addEventListener('click', () => {
+    state.reports.push(state.currentReport);
+    closeDialog('dialog-confirm');
+    renderPreview();
+    showScreen('preview');
+});
+
+function renderPreview() {
+    const r = state.currentReport;
+    document.getElementById('preview-header').innerHTML = `
+        <h2>${r.site}</h2>
+        <p>Inspector: ${r.inspector} | Fecha: ${r.date}</p>
+        <p>Dirección: ${r.address}</p>
+    `;
+    
+    let tableHtml = `<table style="width:100%; border-collapse:collapse;">
+        <tr style="background:#eee;">
+            <th style="padding:8px; border:1px solid #ccc;">Obs.</th>
+            <th style="padding:8px; border:1px solid #ccc;">Norma</th>
+            <th style="padding:8px; border:1px solid #ccc;">Riesgo</th>
+        </tr>`;
+    
+    r.observations.forEach(o => {
+        tableHtml += `<tr>
+            <td style="padding:8px; border:1px solid #ccc;">${o.description}</td>
+            <td style="padding:8px; border:1px solid #ccc;">${o.norma}</td>
+            <td style="padding:8px; border:1px solid #ccc;">${o.risk}</td>
+        </tr>`;
+    });
+    tableHtml += '</table>';
+    document.getElementById('preview-table').innerHTML = tableHtml;
+}
+
+// --- Admin ---
+document.getElementById('btn-goto-admin').addEventListener('click', () => {
+    renderAdminUsers();
+    showScreen('admin');
+});
+
+function renderAdminUsers() {
+    const list = document.getElementById('admin-users-list');
+    list.innerHTML = '';
+    state.users.forEach(u => {
+        if (u.user === 'admin') return;
+        const div = document.createElement('div');
+        div.className = 'm3-card';
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+        div.innerHTML = `
+            <div>
+                <strong>${u.name}</strong> (${u.role})
+            </div>
+            <button class="m3-btn-text" style="color:var(--md-sys-color-error);" onclick="revokeUser('${u.user}')">Revocar</button>
+        `;
+        list.appendChild(div);
+    });
+}
+
+function revokeUser(username) {
+    if (confirm(`¿Revocar acceso a ${username}?`)) {
+        state.users = state.users.filter(u => u.user !== username);
+        renderAdminUsers();
+    }
+}
+
+window.showScreen = showScreen;
+window.viewReport = (id) => { state.currentReport = state.reports.find(r => r.id === id); renderPreview(); showScreen('preview'); };
+window.editReport = (id) => { state.currentReport = state.reports.find(r => r.id === id); renderObservations(); showScreen('console'); };
+window.revokeUser = revokeUser;
+window.closeDialog = closeDialog;

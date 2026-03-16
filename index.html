@@ -3,98 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Licenciatec | Smart Inspection Copilot</title>
+    <title>Licenciatec | Google Pro Inspector</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
-<body class="mode-architect">
-    <div class="app-container">
-        <!-- STEP 1: ROLE SELECTOR -->
-        <section id="step-1" class="step-screen active">
-            <div class="selector-card glass-card">
-                <h1 class="logo-text">LICENCIA<span>TEC</span></h1>
-                <h2 style="color: #000; margin-bottom: 30px;">Seleccione Especialidad</h2>
-                <div class="role-grid">
-                    <button class="role-btn" data-role="architect">
-                        <span class="icon">🏗️</span>
-                        <span class="btn-label">Arquitectura / Seguridad</span>
-                    </button>
-                    <button class="role-btn" data-role="electrical">
-                        <span class="icon">⚡</span>
-                        <span class="btn-label">Ingeniero Electricista</span>
-                    </button>
-                </div>
+<body>
+    <!-- 1. LOGIN SCREEN -->
+    <section id="screen-login" class="step-screen active">
+        <div class="logo-container">
+            <div class="logo-text-pro">LICENCIA<span>TEC</span></div>
+        </div>
+        <div class="brand-hero">
+            <p>Smart Inspection Copilot</p>
+        </div>
+        <div class="m3-card" style="margin: 0 32px;">
+            <input type="text" id="login-user" class="m3-input-field" placeholder="Usuario">
+            <input type="password" id="login-pass" class="m3-input-field" placeholder="Contraseña">
+            <button id="btn-login" class="m3-btn-filled" style="width: 100%;">ENTRAR</button>
+        </div>
+    </section>
+
+    <!-- 2. DASHBOARD (MY REPORTS) -->
+    <section id="screen-dashboard" class="step-screen">
+        <header class="m3-top-bar">
+            <div class="logo-text-pro" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
+            <div style="flex:1;"></div>
+            <button class="m3-btn-text" id="btn-logout">Cerrar Sesión</button>
+        </header>
+        <main class="m3-list" id="reports-list" style="flex:1; padding-bottom: 140px;">
+            <!-- Dynamic reports here -->
+        </main>
+        <div class="fab-container-center">
+            <button class="m3-fab-center" id="btn-new-report">+</button>
+        </div>
+        <div style="padding: 16px; text-align: center;">
+            <button id="btn-goto-admin" class="m3-btn-text" style="display:none; color: var(--lt-navy); font-weight: 500;">🛡️ Gestión de Usuarios (Admin)</button>
+        </div>
+    </section>
+
+    <!-- 3. REPORT OBSERVATIONS LIST -->
+    <section id="screen-obs-list" class="step-screen">
+        <header class="m3-top-bar">
+            <button class="m3-btn-text" onclick="showScreen('dashboard')">⬅️</button>
+            <div class="logo-text-pro" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
+        </header>
+        <main class="m3-list" id="findings-summary">
+            <!-- List of findings -->
+        </main>
+    </section>
+
+    <!-- 4. GENERAL DATA FORM -->
+    <section id="screen-general-data" class="step-screen">
+        <header class="m3-top-bar">
+            <button class="m3-btn-text" onclick="showScreen('dashboard')">⬅️</button>
+            <div class="logo-text-pro" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
+        </header>
+        <main class="m3-list">
+            <div class="m3-card">
+                <h2 style="margin-bottom: 24px; color: var(--lt-navy);">Configuración de Informe</h2>
+                <input type="text" id="data-address" class="m3-input-field" placeholder="Dirección">
+                <input type="text" id="data-site" class="m3-input-field" placeholder="Local / Sede">
+                <input type="text" id="data-inspector" class="m3-input-field" placeholder="Inspector">
+                <input type="date" id="data-date" class="m3-input-field">
+                <button id="btn-to-console" class="m3-btn-filled" style="width: 100%;">INICIAR INSPECCIÓN</button>
             </div>
-        </section>
+        </main>
+    </section>
 
-        <!-- STEP 2: GENERAL DATA -->
-        <section id="step-2" class="step-screen">
-            <header class="app-header">
-                <button class="btn-back">⬅️</button>
-                <span class="brand">DATOS <span>GENERALES</span></span>
-            </header>
-            <main class="form-area">
-                <div class="glass-card">
-                    <div class="form-group">
-                        <label>Sede / Planta</label>
-                        <input type="text" id="site-name" placeholder="Ej. Planta Huachipa">
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha de Inspección</label>
-                        <input type="date" id="inspection-date">
-                    </div>
-                    <div class="form-group">
-                        <label>Inspector Responsable</label>
-                        <input type="text" id="inspector-name" placeholder="Nombre completo">
-                    </div>
-                    <button id="btn-start-inspection" class="btn-primary">INICIAR INSPECCIÓN</button>
-                </div>
-            </main>
-        </section>
+    <!-- 5. INSPECTION CONSOLE -->
+    <section id="screen-console" class="step-screen">
+        <header class="m3-top-bar">
+            <button class="m3-btn-text" onclick="showScreen('general-data')">⬅️</button>
+            <div class="logo-text-pro" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
+            <span class="m3-badge" id="badge-role" style="background: var(--lt-navy); color: white;">Arquitectura</span>
+        </header>
+        <main class="m3-list" id="console-feed" style="background: #f8f9fa;">
+            <!-- Active observations -->
+        </main>
+        
+        <!-- Action Bar -->
+        <footer style="padding: 24px; background: white; border-top: 1px solid var(--md-sys-color-outline); box-shadow: 0 -4px 12px rgba(0,0,0,0.05);">
+            <div id="transcription-preview" style="height: 40px; margin-bottom: 8px; font-size: 0.9rem; color: #666; overflow: hidden;">
+                <!-- Interim transcript appears here -->
+            </div>
+            <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                <button class="m3-btn-filled" id="btn-camera" style="flex:1; background: var(--lt-navy);">📷 FOTO</button>
+                <button class="m3-btn-filled" id="btn-voice" style="flex:1; background: #fbcc3c; color: black; box-shadow: 0 4px 12px rgba(251, 204, 60, 0.3);">🎤 DICTAR</button>
+            </div>
+            <textarea id="obs-description" class="m3-input-field" placeholder="Descripción de la observación..." style="height: 80px; resize: none;"></textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+                <select id="obs-risk" class="m3-input-field" style="width: auto; margin:0; flex:1;">
+                    <option value="bajo">Riesgo Bajo</option>
+                    <option value="medio">Riesgo Medio</option>
+                    <option value="alto">Riesgo Alto</option>
+                </select>
+                <button id="btn-save-obs" class="m3-btn-filled" style="padding: 16px 24px;">GUARDAR</button>
+            </div>
+            <button id="btn-finish-report" class="m3-btn-filled" style="width: 100%; margin-top: 20px; background: var(--md-sys-color-success); box-shadow: 0 4px 12px rgba(30, 142, 62, 0.3);">FINALIZAR INFORME ✅</button>
+        </footer>
+    </section>
 
-        <!-- STEP 3: INSPECTION CONSOLE -->
-        <section id="step-3" class="step-screen">
-            <header class="app-header">
-                <div class="header-content">
-                    <span class="brand">INSPEC<span>CIÓN</span></span>
-                    <div class="specialty-indicator" id="current-specialty">Arquitectura</div>
-                </div>
-            </header>
+    <!-- 6. REPORT PREVIEW / EXPORT -->
+    <section id="screen-preview" class="step-screen">
+        <header class="m3-top-bar">
+            <div class="logo-text-pro" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
+            <button class="m3-btn-text" style="flex:1; text-align: right;" onclick="showScreen('dashboard')">Cerrar</button>
+        </header>
+        <main class="m3-list">
+            <div id="preview-header" class="m3-card"></div>
+            <div id="preview-table" class="m3-card" style="overflow-x: auto;">
+                <!-- Table of observations -->
+            </div>
+            <div style="display: flex; gap: 16px; padding: 16px;">
+                <button class="m3-btn-filled" style="flex:1; background: #d63031;">📄 PDF</button>
+                <button class="m3-btn-filled" style="flex:1; background: #1d6f42;">📊 EXCEL</button>
+            </div>
+        </main>
+    </section>
 
-            <main class="content-area">
-                <div id="hallazgos-feed" class="hallazgos-container">
-                    <div class="empty-state">
-                        <div class="empty-icon">📷</div>
-                        <p>Capture un hallazgo para comenzar</p>
-                    </div>
-                </div>
-            </main>
+    <!-- 7. ADMIN SCREEN -->
+    <section id="screen-admin" class="step-screen">
+        <header class="m3-top-bar">
+            <button class="m3-btn-text" onclick="showScreen('dashboard')">⬅️</button>
+            <div class="logo-text-pro" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
+        </header>
+        <main class="m3-list">
+            <h2 style="padding: 24px; color: var(--lt-navy);">Gestión de Usuarios</h2>
+            <div class="m3-card">
+                <input type="text" id="admin-new-user" class="m3-input-field" placeholder="Nuevo Usuario">
+                <select id="admin-new-role" class="m3-input-field">
+                    <option value="architect">Arquitecto</option>
+                    <option value="electrical">Ing. Eléctrico</option>
+                </select>
+                <button class="m3-btn-filled" style="width: 100%;">AÑADIR USUARIO</button>
+            </div>
+            <div id="admin-users-list">
+                <!-- User list with Revoke buttons -->
+            </div>
+        </main>
+    </section>
 
-            <!-- WhatsApp Style Input Bar -->
-            <footer class="observation-bar">
-                <div class="input-container">
-                    <button id="btn-camera" class="round-icon-btn">📷</button>
-                    <input type="text" id="manual-text" placeholder="Escriba una observación...">
-                    <button id="btn-voice" class="round-icon-btn mic-btn">🎤</button>
-                    <button id="btn-send" class="round-icon-btn send-btn">➡️</button>
-                </div>
-                <div class="status-row">
-                    <button id="btn-finish" class="btn-finish-minimal">FINALIZAR INFORME ✅</button>
-                </div>
-            </footer>
-        </section>
-
-        <!-- Hidden Inputs for Hardware -->
-        <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
-
-        <!-- AI Process Indicator -->
-        <div id="ai-status" class="ai-status">
-            <span class="ai-icon">✨</span>
-            <span id="ai-msg">IA Procesando...</span>
+    <!-- Confirmation Dialog -->
+    <div id="dialog-confirm" class="m3-dialog-overlay">
+        <div class="m3-dialog">
+            <h3>¿Terminar informe?</h3>
+            <p>Una vez finalizado, el informe se guardará y no podrá editarse sin permiso.</p>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px;">
+                <button class="m3-btn-text" onclick="closeDialog('dialog-confirm')">NO</button>
+                <button class="m3-btn-filled" id="btn-confirm-finish">SÍ, FINALIZAR</button>
+            </div>
         </div>
     </div>
+
     <script src="app.js"></script>
 </body>
 </html>
