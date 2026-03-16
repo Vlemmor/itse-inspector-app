@@ -1,4 +1,4 @@
-console.log("App v1.3 starting...");
+console.log("App v1.4 starting...");
 const state = {
     currentUser: null,
     currentReport: null,
@@ -93,13 +93,15 @@ function renderObservations() {
     state.currentReport.observations.forEach(obs => {
         const item = document.createElement('div');
         item.className = 'm3-card';
+        let imgHtml = obs.image ? `<img src="${obs.image}" class="obs-img-thumb" alt="Evidencia">` : '';
         item.innerHTML = `
-            <div style="display:flex; justify-content:space-between;">
-                <strong>Norma: ${obs.norma}</strong>
-                <span class="m3-badge" style="background:#fce8e6; color:#b3261e;">Riesgo ${obs.risk}</span>
+            ${imgHtml}
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="color:var(--lt-navy);">Norma: ${obs.norma}</strong>
+                <span class="m3-badge" style="background:#fce8e6; color:#b3261e; font-weight:800;">Riesgo ${obs.risk}</span>
             </div>
-            <p style="margin:8px 0;">${obs.description}</p>
-            <p style="font-size:0.8rem; color:#666;">Recomendación: ${obs.recommendation}</p>
+            <p style="margin:12px 0; font-size:1.1rem;">${obs.description}</p>
+            <p style="font-size:0.85rem; color:#555; background:#f8f9fa; padding:8px; border-radius:8px;">💡 <b>Recomendación:</b> ${obs.recommendation}</p>
         `;
         feed.appendChild(item);
     });
@@ -111,6 +113,7 @@ document.getElementById('btn-save-obs').addEventListener('click', () => {
     
     const obs = {
         id: Date.now(),
+        image: state.tempPhoto || null,
         description: desc,
         risk: document.getElementById('obs-risk').value,
         norma: "Detectando...",
@@ -118,6 +121,7 @@ document.getElementById('btn-save-obs').addEventListener('click', () => {
     };
     
     state.currentReport.observations.push(obs);
+    state.tempPhoto = null; // Reset temp photo
     document.getElementById('obs-description').value = '';
     renderObservations();
     
@@ -137,13 +141,21 @@ document.getElementById('btn-camera').addEventListener('click', () => {
 
 cameraInput.addEventListener('change', function() {
     if (this.files && this.files[0]) {
-        // File picked/Photo taken
-        const desc = document.getElementById('obs-description');
-        const role = state.currentUser.role === 'architect' ? "Arquitectura" : "Electricidad";
-        desc.value = `Hallazgo de ${role}: [Describa el detalle de la foto aquí]`;
-        desc.classList.add('is-simulated'); // Mark as simulated to allow easy clear
-        // In a real app, we would upload/analyze this file
-        console.log("Photo captured:", this.files[0].name);
+        const file = this.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64 = e.target.result;
+            const desc = document.getElementById('obs-description');
+            const role = state.currentUser.role === 'architect' ? "Arquitectura" : "Electricidad";
+            
+            // Temporary storage for the last captured photo in the current session
+            state.tempPhoto = base64;
+            
+            desc.value = `Hallazgo detectado: [Complete la descripción o dicte aquí]`;
+            desc.classList.add('is-simulated');
+            console.log("Photo processed as base64");
+        };
+        reader.readAsDataURL(file);
     }
 });
 
@@ -168,20 +180,20 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     
     recognition.onresult = (event) => {
         let interimTranscript = '';
-        let finalTranscriptChunk = '';
         
+        // Use a better way to handle final vs interim to avoid duplication
         for (let i = event.resultIndex; i < event.results.length; ++i) {
             const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-                finalTranscriptChunk += transcript + ' ';
-                document.getElementById('obs-description').value += transcript + ' ';
+                const textarea = document.getElementById('obs-description');
+                // Ensure we don't duplicate the exact same final chunk if multi-fired
+                textarea.value += (textarea.value.endsWith(' ') ? '' : ' ') + transcript;
             } else {
                 interimTranscript += transcript;
             }
         }
         
         previewArea.innerHTML = `<span class="interim-text">${interimTranscript}</span>`;
-        // Scroll to bottom of textarea to see new text
         const textarea = document.getElementById('obs-description');
         textarea.scrollTop = textarea.scrollHeight;
     };
@@ -219,28 +231,41 @@ document.getElementById('btn-confirm-finish').addEventListener('click', () => {
 function renderPreview() {
     const r = state.currentReport;
     document.getElementById('preview-header').innerHTML = `
-        <h2>${r.site}</h2>
-        <p>Inspector: ${r.inspector} | Fecha: ${r.date}</p>
-        <p>Dirección: ${r.address}</p>
+        <h2 style="color:var(--lt-navy); font-weight:800; font-size:1.8rem;">${r.site}</h2>
+        <p style="margin-top:8px;"><b>Inspector:</b> ${r.inspector} | <b>Fecha:</b> ${r.date}</p>
+        <p><b>Dirección:</b> ${r.address}</p>
     `;
     
-    let tableHtml = `<table style="width:100%; border-collapse:collapse;">
-        <tr style="background:#eee;">
-            <th style="padding:8px; border:1px solid #ccc;">Obs.</th>
-            <th style="padding:8px; border:1px solid #ccc;">Norma</th>
-            <th style="padding:8px; border:1px solid #ccc;">Riesgo</th>
-        </tr>`;
+    let tableHtml = `
+        <thead>
+            <tr>
+                <th>Foto</th>
+                <th>Hallazgo</th>
+                <th>Norma</th>
+                <th>Recomendación</th>
+                <th>Riesgo</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
     
     r.observations.forEach(o => {
-        tableHtml += `<tr>
-            <td style="padding:8px; border:1px solid #ccc;">${o.description}</td>
-            <td style="padding:8px; border:1px solid #ccc;">${o.norma}</td>
-            <td style="padding:8px; border:1px solid #ccc;">${o.risk}</td>
-        </tr>`;
+        const imgTag = o.image ? `<img src="${o.image}" class="report-table-img">` : '<div style="font-size:0.6rem; opacity:0.3;">Sin foto</div>';
+        tableHtml += `
+            <tr>
+                <td style="text-align:center;">${imgTag}</td>
+                <td>${o.description}</td>
+                <td><span style="font-family:monospace; font-size:0.8rem;">${o.norma}</span></td>
+                <td>${o.recommendation}</td>
+                <td><span class="m3-badge" style="background:#fce8e6; color:#b3261e; scale:0.8;">${o.risk}</span></td>
+            </tr>
+        `;
     });
-    tableHtml += '</table>';
+    tableHtml += '</tbody>';
     document.getElementById('preview-table').innerHTML = tableHtml;
 }
+
+document.getElementById('btn-close-preview').addEventListener('click', () => showScreen('dashboard'));
 
 // --- Admin ---
 document.getElementById('btn-goto-admin').addEventListener('click', () => {
