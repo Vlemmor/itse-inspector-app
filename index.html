@@ -3,41 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Licenciatec | Inspector Pro v1.1</title>
-    <link rel="stylesheet" href="styles.css?v=1.1">
+    <title>Licenciatec | Inspector Pro v1.2</title>
+    <link rel="stylesheet" href="styles.css?v=1.2">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- 1. LOGIN SCREEN -->
     <section id="screen-login" class="step-screen active">
-        <div class="logo-container">
-            <div class="logo-text-pro">LICENCIA<span>TEC</span></div>
+        <div class="logo-container-main">
+            <div class="logo-main">LICENCIA<span>TEC</span></div>
+            <div class="logo-subtext">Consultoría & Asesoramiento</div>
         </div>
-        <div class="brand-hero">
-            <p>Smart Inspection Copilot</p>
+        <div class="brand-hero" style="text-align: center; margin-bottom: 40px;">
+            <p style="color: var(--lt-navy); opacity: 0.6; font-weight: 500;">Smart Inspection Copilot</p>
         </div>
-        <div class="m3-card" style="margin: 0 32px;">
-            <input type="text" id="login-user" class="m3-input-field" placeholder="Usuario">
-            <input type="password" id="login-pass" class="m3-input-field" placeholder="Contraseña">
+        <div class="m3-card" style="margin: 0 24px; padding: 32px;">
+            <div class="form-group">
+                <label class="form-label">Usuario</label>
+                <input type="text" id="login-user" class="m3-input-field" placeholder="ej. admin">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <input type="password" id="login-pass" class="m3-input-field" placeholder="••••••••">
+            </div>
             <button id="btn-login" class="m3-btn-filled" style="width: 100%;">ENTRAR</button>
         </div>
     </section>
 
     <!-- 2. DASHBOARD (MY REPORTS) -->
     <section id="screen-dashboard" class="step-screen">
-        <header class="m3-top-bar">
-            <div class="logo-text-pro" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
+        <header class="m3-top-bar" style="background: white;">
+            <div class="logo-main" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
             <div style="flex:1;"></div>
-            <button class="m3-btn-text" id="btn-logout">Cerrar Sesión</button>
+            <button class="m3-btn-text" id="btn-logout" style="color: var(--lt-navy);">Cerrar Sesión</button>
         </header>
-        <main class="m3-list" id="reports-list" style="flex:1; padding-bottom: 140px;">
+        <main class="m3-list" id="reports-list" style="flex:1; padding: 24px; padding-bottom: 140px;">
             <!-- Dynamic reports here -->
         </main>
         <div class="fab-container-center">
             <button class="m3-fab-center" id="btn-new-report">+</button>
         </div>
         <div style="padding: 16px; text-align: center;">
-            <button id="btn-goto-admin" class="m3-btn-text" style="display:none; color: var(--lt-navy); font-weight: 500;">🛡️ Gestión de Usuarios (Admin)</button>
+            <button id="btn-goto-admin" class="m3-btn-text" style="display:none; color: var(--lt-navy); font-weight: 600;">🛡️ GESTIÓN DE USUARIOS</button>
         </div>
     </section>
 
@@ -45,9 +52,9 @@
     <section id="screen-obs-list" class="step-screen">
         <header class="m3-top-bar">
             <button class="m3-btn-text" onclick="showScreen('dashboard')">⬅️</button>
-            <div class="logo-text-pro" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
+            <div class="logo-main" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
         </header>
-        <main class="m3-list" id="findings-summary">
+        <main class="m3-list" id="findings-summary" style="padding: 24px;">
             <!-- List of findings -->
         </main>
     </section>
@@ -56,50 +63,74 @@
     <section id="screen-general-data" class="step-screen">
         <header class="m3-top-bar">
             <button class="m3-btn-text" onclick="showScreen('dashboard')">⬅️</button>
-            <div class="logo-text-pro" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
+            <div class="logo-main" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
         </header>
-        <main class="m3-list">
+        <main class="m3-list" style="padding: 24px;">
             <div class="m3-card">
-                <h2 style="margin-bottom: 24px; color: var(--lt-navy);">Configuración de Informe</h2>
-                <input type="text" id="data-address" class="m3-input-field" placeholder="Dirección">
-                <input type="text" id="data-site" class="m3-input-field" placeholder="Local / Sede">
-                <input type="text" id="data-inspector" class="m3-input-field" placeholder="Inspector">
-                <input type="date" id="data-date" class="m3-input-field">
-                <button id="btn-to-console" class="m3-btn-filled" style="width: 100%;">INICIAR INSPECCIÓN</button>
+                <h2 style="margin-bottom: 32px; color: var(--lt-navy); text-align: center; font-weight: 800;">Configuración de Informe</h2>
+                
+                <div class="form-group">
+                    <label class="form-label">Dirección del Servicio</label>
+                    <input type="text" id="data-address" class="m3-input-field" placeholder="ej. Av. Argentina 2833">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Local / Sede</label>
+                    <input type="text" id="data-site" class="m3-input-field" placeholder="ej. Ransa Argentina">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Nombre del Inspector</label>
+                    <input type="text" id="data-inspector" class="m3-input-field" placeholder="ej. Arq. Juan Perez">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Fecha de Inspección</label>
+                    <input type="date" id="data-date" class="m3-input-field">
+                </div>
+                
+                <button id="btn-to-console" class="m3-btn-filled" style="width: 100%; margin-top: 16px;">INICIAR INSPECCIÓN</button>
             </div>
         </main>
     </section>
 
     <!-- 5. INSPECTION CONSOLE -->
     <section id="screen-console" class="step-screen">
-        <header class="m3-top-bar">
+        <header class="m3-top-bar" style="background: white;">
             <button class="m3-btn-text" onclick="showScreen('general-data')">⬅️</button>
-            <div class="logo-text-pro" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
-            <span class="m3-badge" id="badge-role" style="background: var(--lt-navy); color: white;">Arquitectura</span>
+            <div class="logo-main" style="font-size: 1.2rem;">LICENCIA<span>TEC</span></div>
+            <span class="m3-badge" id="badge-role" style="background: var(--lt-navy); color: white; border-radius: 4px; padding: 4px 8px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">Arquitectura</span>
         </header>
-        <main class="m3-list" id="console-feed" style="background: #f8f9fa;">
-            <!-- Active observations -->
+        
+        <main id="console-feed">
+            <div style="text-align: center; padding: 60px 40px; opacity: 0.4;">
+                 <p>Tome una foto o dicte una observación para comenzar.</p>
+            </div>
         </main>
         
         <!-- Action Bar -->
-        <footer style="padding: 24px; background: white; border-top: 1px solid var(--md-sys-color-outline); box-shadow: 0 -4px 12px rgba(0,0,0,0.05);">
-            <div id="transcription-preview" style="height: 40px; margin-bottom: 8px; font-size: 0.9rem; color: #666; overflow: hidden;">
-                <!-- Interim transcript appears here -->
+        <footer class="console-footer">
+            <div id="transcription-preview" style="height: 36px; margin-bottom: 12px; font-size: 0.85rem; color: var(--lt-blue-royal); font-weight: 500;">
+                <!-- Interim transcript -->
             </div>
-            <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                <button class="m3-btn-filled" id="btn-camera" style="flex:1; background: var(--lt-navy);">📷 FOTO</button>
-                <button class="m3-btn-filled" id="btn-voice" style="flex:1; background: #fbcc3c; color: black; box-shadow: 0 4px 12px rgba(251, 204, 60, 0.3);">🎤 DICTAR</button>
+            
+            <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                <button class="m3-btn-filled m3-btn-navy" id="btn-camera" style="flex:1; border-radius: 12px;">📷 FOTO</button>
+                <button class="m3-btn-filled" id="btn-voice" style="flex:1; background: var(--lt-blue-royal); border-radius: 12px;">🎤 DICTAR</button>
             </div>
-            <textarea id="obs-description" class="m3-input-field" placeholder="Descripción de la observación..." style="height: 80px; resize: none;"></textarea>
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
-                <select id="obs-risk" class="m3-input-field" style="width: auto; margin:0; flex:1;">
-                    <option value="bajo">Riesgo Bajo</option>
+            
+            <textarea id="obs-description" class="m3-input-field" placeholder="Escriba o dicte el hallazgo..." style="height: 90px; resize: none; margin-bottom: 20px; border-radius: 12px;"></textarea>
+            
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <select id="obs-risk" class="m3-input-field" style="margin:0; flex:1; height: 56px; border-radius: 12px;">
+                    <option value="bajo">Bajo Riesgo</option>
                     <option value="medio">Riesgo Medio</option>
                     <option value="alto">Riesgo Alto</option>
                 </select>
-                <button id="btn-save-obs" class="m3-btn-filled" style="padding: 16px 24px;">GUARDAR</button>
+                <button id="btn-save-obs" class="m3-btn-filled" style="padding: 0 32px; height: 56px; border-radius: 12px;">GUARDAR</button>
             </div>
-            <button id="btn-finish-report" class="m3-btn-filled" style="width: 100%; margin-top: 20px; background: var(--md-sys-color-success); box-shadow: 0 4px 12px rgba(30, 142, 62, 0.3);">FINALIZAR INFORME ✅</button>
+            
+            <button id="btn-finish-report" class="m3-btn-filled m3-btn-navy" style="width: 100%; margin-top: 24px; background: var(--md-sys-color-success);">FINALIZAR INFORME ✅</button>
         </footer>
     </section>
 
@@ -155,6 +186,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=1.1"></script>
+    <script src="app.js?v=1.2"></script>
 </body>
 </html>

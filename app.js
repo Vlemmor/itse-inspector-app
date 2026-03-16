@@ -1,4 +1,4 @@
-console.log("App v1.1 starting...");
+console.log("App v1.2 starting...");
 const state = {
     currentUser: null,
     currentReport: null,
@@ -68,12 +68,13 @@ document.getElementById('btn-new-report').addEventListener('click', () => {
 
 document.getElementById('btn-to-console').addEventListener('click', () => {
     const site = document.getElementById('data-site').value;
+    const address = document.getElementById('data-address').value;
     if (!site) return alert('Ingrese la sede.');
     
     state.currentReport = {
-        id: Date.now().toString(),
-        site,
-        address: document.getElementById('data-address').value,
+        id: Date.now(),
+        site: site,
+        address: address,
         inspector: document.getElementById('data-inspector').value,
         date: document.getElementById('data-date').value,
         observations: []
@@ -128,6 +129,15 @@ document.getElementById('btn-save-obs').addEventListener('click', () => {
     }, 1500);
 });
 
+// --- Camera / Photo Logic ---
+document.getElementById('btn-camera').addEventListener('click', () => {
+    // Simulate real camera trigger
+    alert('Accediendo a la cámara...');
+    const desc = document.getElementById('obs-description');
+    desc.value = "Análisis de foto: " + (state.currentUser.role === 'architect' ? "Deficiencia en acabados de muro." : "Cableado expuesto en tablero.");
+    // Simulate the click to save automatically or let user refine
+});
+
 // --- Voice Transcription (Real-time Gemini Style) ---
 let recognition;
 const previewArea = document.getElementById('transcription-preview');
@@ -169,14 +179,12 @@ document.getElementById('btn-voice').addEventListener('click', function() {
     if (isRecording) {
         recognition.start();
         this.innerHTML = '🛑 DETENER';
-        this.style.background = '#d63031';
-        this.style.color = 'white';
+        this.classList.add('m3-btn-navy'); // Professional Navy for stop
         previewArea.innerHTML = '<i>Escuchando...</i>';
     } else {
         recognition.stop();
         this.innerHTML = '🎤 DICTAR';
-        this.style.background = '#fbcc3c';
-        this.style.color = 'black';
+        this.classList.remove('m3-btn-navy');
         previewArea.innerHTML = '';
     }
 });
