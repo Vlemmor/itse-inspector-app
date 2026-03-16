@@ -1,4 +1,4 @@
-console.log("App v1.4 starting...");
+console.log("App v1.5 starting...");
 const state = {
     currentUser: null,
     currentReport: null,
@@ -121,7 +121,8 @@ document.getElementById('btn-save-obs').addEventListener('click', () => {
     };
     
     state.currentReport.observations.push(obs);
-    state.tempPhoto = null; // Reset temp photo
+    state.tempPhoto = null; 
+    document.getElementById('image-preview-container').style.display = 'none';
     document.getElementById('obs-description').value = '';
     renderObservations();
     
@@ -145,18 +146,43 @@ cameraInput.addEventListener('change', function() {
         const reader = new FileReader();
         reader.onload = function(e) {
             const base64 = e.target.result;
-            const desc = document.getElementById('obs-description');
-            const role = state.currentUser.role === 'architect' ? "Arquitectura" : "Electricidad";
-            
-            // Temporary storage for the last captured photo in the current session
             state.tempPhoto = base64;
             
-            desc.value = `Hallazgo detectado: [Complete la descripción o dicte aquí]`;
+            // Show Preview
+            const previewContainer = document.getElementById('image-preview-container');
+            const previewImg = document.getElementById('image-preview');
+            previewImg.src = base64;
+            previewContainer.style.display = 'block';
+            
+            // Suggest Observation (AI Simulation)
+            const desc = document.getElementById('obs-description');
+            const suggestions = {
+                architect: [
+                    "Se observa deficiencia en los acabados del muro perimetral.",
+                    "Falta de señalización de evacuación en pasadizo principal.",
+                    "Obstrucción de pasillos con mobiliario excedente."
+                ],
+                electrical: [
+                    "Tablero eléctrico con cables expuestos y sin tapa de protección.",
+                    "Luminarias de emergencia sin funcionamiento tras prueba.",
+                    "Falta de pozo a tierra certificado para equipos críticos."
+                ]
+            };
+            const roleSuggestions = suggestions[state.currentUser.role] || suggestions.architect;
+            const randomSuggest = roleSuggestions[Math.floor(Math.random() * roleSuggestions.length)];
+            
+            desc.value = randomSuggest;
             desc.classList.add('is-simulated');
-            console.log("Photo processed as base64");
+            console.log("Photo preview active with AI suggestion");
         };
         reader.readAsDataURL(file);
     }
+});
+
+document.getElementById('btn-clear-image').addEventListener('click', () => {
+    state.tempPhoto = null;
+    document.getElementById('image-preview-container').style.display = 'none';
+    document.getElementById('camera-input').value = ''; // Reset input so same file can be retaken
 });
 
 // Auto-select/clear simulated text on focus
@@ -180,21 +206,23 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     
     recognition.onresult = (event) => {
         let interimTranscript = '';
+        const textarea = document.getElementById('obs-description');
         
-        // Use a better way to handle final vs interim to avoid duplication
+        // Strategy: Only process the results from the current event and avoid re-processing old results
+        // Actually, WebSpeech sometimes duplicates if we aren't careful with the index.
         for (let i = event.resultIndex; i < event.results.length; ++i) {
             const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-                const textarea = document.getElementById('obs-description');
-                // Ensure we don't duplicate the exact same final chunk if multi-fired
-                textarea.value += (textarea.value.endsWith(' ') ? '' : ' ') + transcript;
+                // To avoid multiple appends of the same "final" result (common in some mobile browsers):
+                if (!textarea.value.toLowerCase().includes(transcript.toLowerCase().trim())) {
+                    textarea.value += (textarea.value ? ' ' : '') + transcript;
+                }
             } else {
                 interimTranscript += transcript;
             }
         }
         
         previewArea.innerHTML = `<span class="interim-text">${interimTranscript}</span>`;
-        const textarea = document.getElementById('obs-description');
         textarea.scrollTop = textarea.scrollHeight;
     };
 
