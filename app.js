@@ -1,4 +1,4 @@
-console.log("App v1.5 starting...");
+console.log("App v1.6 starting...");
 const state = {
     currentUser: null,
     currentReport: null,
@@ -100,12 +100,46 @@ function renderObservations() {
                 <strong style="color:var(--lt-navy);">Norma: ${obs.norma}</strong>
                 <span class="m3-badge" style="background:#fce8e6; color:#b3261e; font-weight:800;">Riesgo ${obs.risk}</span>
             </div>
-            <p style="margin:12px 0; font-size:1.1rem;">${obs.description}</p>
-            <p style="font-size:0.85rem; color:#555; background:#f8f9fa; padding:8px; border-radius:8px;">💡 <b>Recomendación:</b> ${obs.recommendation}</p>
+            <p style="margin:12px 0; font-size:1.1rem; line-height:1.4;">${obs.description}</p>
+            <div style="background:#f8f9fa; padding:12px; border-radius:12px; border-left:4px solid var(--lt-blue-light); margin-bottom:16px;">
+                 <p style="font-size:0.85rem; color:#555;">💡 <b>Recomendación sugerida:</b></p>
+                 <p style="font-size:0.9rem; color:var(--lt-navy); margin-top:4px;">${obs.recommendation}</p>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button class="m3-btn-text" style="color:var(--lt-navy); font-size:0.8rem;" onclick="editObservation(${obs.id})">✏️ EDITAR</button>
+                <button class="m3-btn-text" style="color:var(--md-sys-color-error); font-size:0.8rem;" onclick="deleteObservation(${obs.id})">🗑️ BORRAR</button>
+            </div>
         `;
         feed.appendChild(item);
     });
 }
+
+window.deleteObservation = (id) => {
+    if (confirm("¿Eliminar este hallazgo?")) {
+        state.currentReport.observations = state.currentReport.observations.filter(o => o.id !== id);
+        renderObservations();
+    }
+};
+
+window.editObservation = (id) => {
+    const obs = state.currentReport.observations.find(o => o.id === id);
+    if (obs) {
+        document.getElementById('obs-description').value = obs.description;
+        document.getElementById('obs-risk').value = obs.risk;
+        if (obs.image) {
+            state.tempPhoto = obs.image;
+            const previewContainer = document.getElementById('image-preview-container');
+            const previewImg = document.getElementById('image-preview');
+            previewImg.src = obs.image;
+            previewContainer.style.display = 'block';
+        }
+        // Remove the one being edited from the list so it can be re-saved
+        state.currentReport.observations = state.currentReport.observations.filter(o => o.id !== id);
+        renderObservations();
+        // Scroll to entry area
+        document.getElementById('image-preview-container').scrollIntoView({ behavior: 'smooth' });
+    }
+};
 
 document.getElementById('btn-save-obs').addEventListener('click', () => {
     const desc = document.getElementById('obs-description').value;
@@ -173,6 +207,10 @@ cameraInput.addEventListener('change', function() {
             
             desc.value = randomSuggest;
             desc.classList.add('is-simulated');
+            // Visual feedback for the suggestion
+            desc.style.border = '2px solid var(--lt-blue-light)';
+            setTimeout(() => desc.style.border = '2px solid transparent', 1000);
+            
             console.log("Photo preview active with AI suggestion");
         };
         reader.readAsDataURL(file);
@@ -208,14 +246,18 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         let interimTranscript = '';
         const textarea = document.getElementById('obs-description');
         
-        // Strategy: Only process the results from the current event and avoid re-processing old results
-        // Actually, WebSpeech sometimes duplicates if we aren't careful with the index.
+        // v1.6 Precise Buffer Strategy:
+        // We accumulate only results that are marked as 'final' and haven't been added yet.
         for (let i = event.resultIndex; i < event.results.length; ++i) {
             const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-                // To avoid multiple appends of the same "final" result (common in some mobile browsers):
-                if (!textarea.value.toLowerCase().includes(transcript.toLowerCase().trim())) {
-                    textarea.value += (textarea.value ? ' ' : '') + transcript;
+                // To avoid duplication, we check if the current value already ends with this transcript fragment
+                // or if it was already processed in this recognition session.
+                const currentText = textarea.value.trim();
+                const cleanFragment = transcript.trim();
+                
+                if (!currentText.toLowerCase().endsWith(cleanFragment.toLowerCase())) {
+                    textarea.value = (currentText ? currentText + ' ' : '') + cleanFragment + ' ';
                 }
             } else {
                 interimTranscript += transcript;

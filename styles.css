@@ -76,22 +76,18 @@ body {
     background: #eef4ff !important;
 }
 
-/* Console Adjustments */
+/* Console Adjustments v1.6 */
 #console-feed {
     flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    padding-bottom: 300px; /* Room for fixed footer */
+    overflow-y: visible; /* Let the parent screen scroll */
+    padding: 24px;
     background: #f8f9fa;
 }
 
 .console-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    position: relative; /* Fixed was blocking the view on mobile */
     background: #ffffff;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.05);
     padding: 24px;
     z-index: 100;
     border-top: 1px solid var(--md-sys-color-outline);
@@ -307,6 +303,9 @@ body {
     opacity: 0.6;
     font-style: italic;
     color: var(--lt-blue-royal);
+    background: rgba(45, 92, 240, 0.05);
+    padding: 2px 4px;
+    border-radius: 4px;
 }
 
 /* Responsive adjustments */
