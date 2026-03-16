@@ -1,3 +1,4 @@
+console.log("App v1.1 starting...");
 const state = {
     currentUser: null,
     currentReport: null,
@@ -27,7 +28,7 @@ document.getElementById('btn-login').addEventListener('click', () => {
     const user = state.users.find(u => u.user === userVal && u.pass === passVal);
     if (user) {
         state.currentUser = user;
-        document.getElementById('btn-goto-admin').style.display = user.role === 'admin' ? 'block' : 'none';
+        document.getElementById('btn-goto-admin').style.display = user.user === 'admin' ? 'block' : 'none';
         renderReports();
         showScreen('dashboard');
     } else {
