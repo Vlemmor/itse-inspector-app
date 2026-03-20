@@ -179,7 +179,7 @@ document.getElementById('btn-save-obs').addEventListener('click', () => {
     renderObservations();
     
     // LLAMADA AL BACKEND REAL (Agente Simplificado)
-    fetch('http://192.168.1.140:8000/analyze-finding', {
+    fetch(`${backendBase}/analyze-finding`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -223,7 +223,7 @@ cameraInput.addEventListener('change', function() {
             previewContainer.style.display = 'block';
             
             // REEMPLAZO: Llamar a la IA de Visión real encargada del análisis
-            fetch('http://192.168.1.140:8000/describe-image', {
+            fetch(`${backendBase}/describe-image`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -263,46 +263,49 @@ document.getElementById('obs-description').addEventListener('focus', function() 
     }
 });
 
-// --- Voice Transcription (Final Robust Version) ---
+const urlParams = new URLSearchParams(window.location.search);
+const backendBase = urlParams.get('api') || 'http://192.168.1.140:8000';
+
+// --- Voice Transcription (Robust "Burst" Solution for Mobile) ---
 let recognition;
-let baseText = ''; 
 const previewArea = document.getElementById('transcription-preview');
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
-    recognition.continuous = true;
+    recognition.continuous = false; // MODO BURST: Más estable en Android
     recognition.interimResults = true;
     recognition.lang = 'es-PE';
     
     recognition.onresult = (event) => {
-        let finals = "";
-        let interim = "";
         const textarea = document.getElementById('obs-description');
-        
-        // Reconstrucción TOTAL desde el array de resultados original
+        let sessionFinal = '';
+        let interim = '';
+
         for (let i = 0; i < event.results.length; ++i) {
             if (event.results[i].isFinal) {
-                finals += event.results[i][0].transcript + " ";
+                sessionFinal += event.results[i][0].transcript;
             } else {
                 interim += event.results[i][0].transcript;
             }
         }
         
-        // El valor REEMPLAZA al anterior basándose únicamente en el estado inicial + el dictado actual
-        const dictated = (finals + interim).trim();
-        textarea.value = (baseText + (baseText && dictated ? " " : "") + dictated).replace(/\s+/g, ' ');
-        previewArea.innerHTML = `<span class="interim-text">${interim}</span>`;
-        textarea.scrollTop = textarea.scrollHeight;
-    };
-
-    recognition.onstart = () => {
-        baseText = document.getElementById('obs-description').value;
+        // Pre-visualizar en el preview
+        previewArea.innerHTML = `<span class="interim-text">${sessionFinal || interim}</span>`;
+        
+        if (sessionFinal) {
+            // Solo cuando es FINAL, añadimos al textarea UNA sola vez
+            textarea.value = (textarea.value + ' ' + sessionFinal).replace(/\s+/g, ' ').trim();
+            textarea.scrollTop = textarea.scrollHeight;
+        }
     };
 
     recognition.onend = () => {
         previewArea.innerHTML = '';
-        baseText = document.getElementById('obs-description').value;
+        const btn = document.getElementById('btn-voice');
+        if (btn.classList.contains('active')) {
+            recognition.start(); // Auto-restart if button is still active
+        }
     };
 }
 
