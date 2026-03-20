@@ -79,10 +79,11 @@ def inspector_node(state: AgentState):
         state['risk_level'] = data.get('risk_level', 'medio')
         
     except Exception as e:
-        print(f"Error en inspector_node Gemini: {e}")
-        # Fallback simple
+        import traceback
+        print(f"--- ERROR CRITICO EN AGENT_SYSTEM ---")
+        traceback.print_exc()
         state['normative_id'] = "RNE (Error de Análisis)"
-        state['recommendation'] = "Error procesando con IA. Revisar manualmente."
+        state['recommendation'] = f"Error: {str(e)[:50]}... Revisar logs del servidor."
         state['risk_level'] = "medio"
         
     state['results'].append(f"Análisis IA: {state['normative_id']}")

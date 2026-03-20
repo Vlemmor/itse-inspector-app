@@ -263,10 +263,9 @@ document.getElementById('obs-description').addEventListener('focus', function() 
     }
 });
 
-// --- Voice Transcription (Session-Scoped Solution) ---
+// --- Voice Transcription (Final Robust Version) ---
 let recognition;
 let baseText = ''; 
-let currentSessionFinals = '';
 const previewArea = document.getElementById('transcription-preview');
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -277,33 +276,33 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognition.lang = 'es-PE';
     
     recognition.onresult = (event) => {
-        let interim = '';
+        let finals = "";
+        let interim = "";
         const textarea = document.getElementById('obs-description');
         
-        // El secreto es usar event.resultIndex para SOLO procesar lo NUEVO
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
+        // Reconstrucción TOTAL desde el array de resultados original
+        for (let i = 0; i < event.results.length; ++i) {
             if (event.results[i].isFinal) {
-                currentSessionFinals += event.results[i][0].transcript + ' ';
+                finals += event.results[i][0].transcript + " ";
             } else {
-                interim = event.results[i][0].transcript;
+                interim += event.results[i][0].transcript;
             }
         }
         
-        // Solo actualizamos el textarea con: Texto Base + Lo Finalizado en esta sesión + Lo Provisional
-        textarea.value = (baseText + ' ' + currentSessionFinals + ' ' + interim).replace(/\s+/g, ' ').trim();
+        // El valor REEMPLAZA al anterior basándose únicamente en el estado inicial + el dictado actual
+        const dictated = (finals + interim).trim();
+        textarea.value = (baseText + (baseText && dictated ? " " : "") + dictated).replace(/\s+/g, ' ');
         previewArea.innerHTML = `<span class="interim-text">${interim}</span>`;
         textarea.scrollTop = textarea.scrollHeight;
     };
 
     recognition.onstart = () => {
-        const textarea = document.getElementById('obs-description');
-        baseText = textarea.value; 
-        currentSessionFinals = ''; // Reset de la sesión
+        baseText = document.getElementById('obs-description').value;
     };
 
     recognition.onend = () => {
         previewArea.innerHTML = '';
-        currentSessionFinals = '';
+        baseText = document.getElementById('obs-description').value;
     };
 }
 
