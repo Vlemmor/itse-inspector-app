@@ -179,7 +179,7 @@ document.getElementById('btn-save-obs').addEventListener('click', () => {
     renderObservations();
     
     // LLAMADA AL BACKEND REAL (Agente Simplificado)
-    fetch('http://localhost:8000/analyze-finding', {
+    fetch('http://192.168.1.140:8000/analyze-finding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -223,7 +223,7 @@ cameraInput.addEventListener('change', function() {
             previewContainer.style.display = 'block';
             
             // REEMPLAZO: Llamar a la IA de Visión real encargada del análisis
-            fetch('http://localhost:8000/describe-image', {
+            fetch('http://192.168.1.140:8000/describe-image', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -263,9 +263,9 @@ document.getElementById('obs-description').addEventListener('focus', function() 
     }
 });
 
-// --- Voice Transcription (Refined "Definitive" Solution) ---
+// --- Voice Transcription (Robust Dedup Loop) ---
 let recognition;
-let baseText = ''; 
+let finalIndexes = new Set();
 const previewArea = document.getElementById('transcription-preview');
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -276,29 +276,27 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognition.lang = 'es-PE';
     
     recognition.onresult = (event) => {
-        let sessionFinal = '';
         let interim = '';
         const textarea = document.getElementById('obs-description');
         
-        // Reconstruimos el texto de la sesión actual sin duplicados
-        for (let i = 0; i < event.results.length; ++i) {
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
             if (event.results[i].isFinal) {
-                sessionFinal += event.results[i][0].transcript;
+                if (!finalIndexes.has(i)) {
+                    const text = event.results[i][0].transcript.trim();
+                    textarea.value = (textarea.value ? textarea.value + ' ' : '') + text;
+                    finalIndexes.add(i);
+                }
             } else {
-                interim += event.results[i][0].transcript;
+                interim = event.results[i][0].transcript;
             }
         }
         
-        // El valor final es el texto que ya estaba + lo dictado (final e interim)
-        textarea.value = (baseText + ' ' + sessionFinal + ' ' + interim).replace(/\s+/g, ' ').trim();
         previewArea.innerHTML = `<span class="interim-text">${interim}</span>`;
         textarea.scrollTop = textarea.scrollHeight;
     };
 
-    recognition.onend = () => {
-        previewArea.innerHTML = '';
-        baseText = document.getElementById('obs-description').value; // Update base for next session
-    };
+    recognition.onstart = () => { finalIndexes.clear(); };
+    recognition.onend = () => { previewArea.innerHTML = ''; };
 }
 
 document.getElementById('btn-voice').addEventListener('click', function() {
@@ -306,7 +304,6 @@ document.getElementById('btn-voice').addEventListener('click', function() {
     const textarea = document.getElementById('obs-description');
     
     if (isRecording) {
-        baseText = textarea.value; // Store current text
         recognition.start();
         this.innerHTML = '🛑 DETENER';
         this.classList.add('recording'); 
