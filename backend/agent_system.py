@@ -12,8 +12,11 @@ class AgentState(TypedDict):
     risk_level: Optional[str]
     next_node: str
 
-import json
 import os
+import json
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- Helper: Load Normative DB ---
 DB_PATH = os.path.join(os.path.dirname(__file__), "normative_db.json")
