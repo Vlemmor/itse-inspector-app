@@ -25,56 +25,71 @@ def peek_norms():
     except:
         return {}
 
-# --- Nodes Implementation ---
+import google.generativeai as genai
+
+# Configure genai (assuming it was already configured in vlm_service or we do it here)
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 def inspector_node(state: AgentState):
     """
-    Nodo único que clasifica, busca norma y evalúa riesgo.
-    Optimizado para minimizar llamadas a LLM y consumo de créditos.
+    Nodo inteligente que utiliza LLM (Gemini) para analizar el hallazgo.
+    Usa la DB normativa como contexto para dar respuestas precisas.
     """
     task_lower = state['task'].lower()
-    print(f"--- INSPECTOR IA: Procesando hallazgo ---")
+    print(f"--- INSPECTOR IA: Analizando con Gemini ---")
     
-    # 1. Clasificación y Búsqueda (Simulación de RAG integrada)
     norms = peek_norms()
-    matched_norm = None
+    norms_context = json.dumps(norms, ensure_ascii=False, indent=2)
     
-    # Determinar categoría probable para búsqueda
-    category = "arquitectura" # default
-    if any(k in task_lower for k in ["eléctrico", "tablero", "cable", "tierra", "térmica"]):
-        category = "electrico"
-    elif any(k in task_lower for k in ["extintor", "señal", "emergencia"]):
-        category = "seguridad"
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
-    # Buscar en la DB normativa
-    for entry in norms.get(category, []):
-        if any(scen in task_lower for scen in entry['scenarios']):
-            matched_norm = entry
-            break
-            
-    if matched_norm:
-        state['normative_id'] = matched_norm['name']
-        state['recommendation'] = matched_norm['recommendation']
-    else:
-        state['normative_id'] = "RNE (Revisión General)"
-        state['recommendation'] = "Se requiere inspección técnica detallada."
+        prompt = f"""
+        Actúa como un inspector técnico senior de ITSE (Seguridad en Edificaciones).
+        Analiza el siguiente hallazgo y compáralo con la base de datos normativa adjunta.
         
-    # 2. Evaluación de Riesgo (Lógica unificada)
-    if any(k in task_lower for k in ["grave", "crítico", "peligro", "fuego", "expuesto"]):
-        state['risk_level'] = "alto"
-    elif "leve" in task_lower:
-        state['risk_level'] = "bajo"
-    else:
+        HALLAZGO: "{state['task']}"
+        
+        BASE DE DATOS NORMATIVA:
+        {norms_context}
+        
+        Tu tarea:
+        1. Identifica la norma específica (ID y nombre) que aplica. Si no está exactamente en la DB, usa tu conocimiento general sobre el RNE (Reglamento Nacional de Edificaciones de Perú) o CNE.
+        2. Proporciona una recomendación técnica clara y accionable.
+        3. Determina el nivel de riesgo (bajo, medio, alto).
+        
+        RESPUESTA EN FORMATO JSON:
+        {{
+            "normative_id": "ID de la norma",
+            "recommendation": "Tu recomendación técnica",
+            "risk_level": "bajo|medio|alto"
+        }}
+        """
+        
+        response = model.generate_content(prompt)
+        # Limpiar respuesta por si el LLM incluye markdown
+        json_text = response.text.replace('```json', '').replace('```', '').strip()
+        data = json.loads(json_text)
+        
+        state['normative_id'] = data.get('normative_id', 'RNE (Revisión General)')
+        state['recommendation'] = data.get('recommendation', 'Se requiere inspección técnica.')
+        state['risk_level'] = data.get('risk_level', 'medio')
+        
+    except Exception as e:
+        print(f"Error en inspector_node Gemini: {e}")
+        # Fallback simple
+        state['normative_id'] = "RNE (Error de Análisis)"
+        state['recommendation'] = "Error procesando con IA. Revisar manualmente."
         state['risk_level'] = "medio"
         
-    state['results'].append(f"Análisis procesado: {state['normative_id']}")
+    state['results'].append(f"Análisis IA: {state['normative_id']}")
     return state
 
 # --- Graph Construction ---
 
 workflow = StateGraph(AgentState)
 
-# Un solo nodo activo para máxima eficiencia
+# Un solo nodo inteligente
 workflow.add_node("inspector", inspector_node)
 
 workflow.set_entry_point("inspector")

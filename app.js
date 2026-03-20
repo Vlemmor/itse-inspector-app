@@ -263,9 +263,9 @@ document.getElementById('obs-description').addEventListener('focus', function() 
     }
 });
 
-// --- Voice Transcription (Robust Dedup Loop) ---
+// --- Voice Transcription (Total Reconstruction Solution) ---
 let recognition;
-let finalIndexes = new Set();
+let baseText = ''; 
 const previewArea = document.getElementById('transcription-preview');
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -276,27 +276,35 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognition.lang = 'es-PE';
     
     recognition.onresult = (event) => {
+        let sessionFinals = '';
         let interim = '';
         const textarea = document.getElementById('obs-description');
         
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
+        // Reconstruimos la sesión completa desde el inicio del dictado actual
+        for (let i = 0; i < event.results.length; ++i) {
             if (event.results[i].isFinal) {
-                if (!finalIndexes.has(i)) {
-                    const text = event.results[i][0].transcript.trim();
-                    textarea.value = (textarea.value ? textarea.value + ' ' : '') + text;
-                    finalIndexes.add(i);
-                }
+                sessionFinals += event.results[i][0].transcript + ' ';
             } else {
-                interim = event.results[i][0].transcript;
+                interim += event.results[i][0].transcript;
             }
         }
         
+        // El valor oficial es: Lo que ya estaba + lo finalizado ahora + lo provisional
+        textarea.value = (baseText + ' ' + sessionFinals + ' ' + interim).replace(/\s+/g, ' ').trim();
         previewArea.innerHTML = `<span class="interim-text">${interim}</span>`;
         textarea.scrollTop = textarea.scrollHeight;
     };
 
-    recognition.onstart = () => { finalIndexes.clear(); };
-    recognition.onend = () => { previewArea.innerHTML = ''; };
+    recognition.onstart = () => {
+        const textarea = document.getElementById('obs-description');
+        baseText = textarea.value; // Capturamos el estado inicial
+    };
+
+    recognition.onend = () => {
+        previewArea.innerHTML = '';
+        const textarea = document.getElementById('obs-description');
+        baseText = textarea.value; // Actualizamos para el siguiente tramo
+    };
 }
 
 document.getElementById('btn-voice').addEventListener('click', function() {
