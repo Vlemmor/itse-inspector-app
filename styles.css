@@ -378,3 +378,75 @@ body {
     width: 90%;
     max-width: 320px;
 }
+
+/* Voice Recording Animation v1.7 */
+.btn-voice.recording {
+    background: #d32f2f !important;
+    animation: blink-red 1.2s infinite ease-in-out;
+    color: white !important;
+    font-weight: bold;
+}
+
+@keyframes blink-red {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(211, 47, 47, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
+}
+
+/* Screen 7: Results Table & Export Buttons */
+.actions-report {
+    display: flex;
+    gap: 15px;
+    margin: 25px 0;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-export {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-width: 180px;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-pdf { background: #b71c1c; color: white; }
+.btn-excel { background: #1b5e20; color: white; }
+
+.btn-export:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Editable cells style */
+.editable-cell {
+    border: 1px dashed #ccc;
+    padding: 5px;
+    border-radius: 4px;
+    min-height: 20px;
+    cursor: text;
+}
+
+.editable-cell:focus {
+    border-style: solid;
+    border-color: var(--lic-blue);
+    background: #f0f7ff;
+    outline: none;
+}
+
+/* Print Optimization for PDF Export */
+@media print {
+    .m3-header, .fab, .actions-report, .btn-console, .m3-floating-btn, .AI-Supervision-badge {
+        display: none !important;
+    }
+    body { background: white; margin: 0; padding: 20px; }
+    .m3-card { box-shadow: none; border: 1px solid #eee; margin: 0; width: 100%; }
+    .m3-table { font-size: 10pt; }
+    .table-container { overflow: visible !important; }
+}

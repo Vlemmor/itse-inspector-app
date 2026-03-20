@@ -157,8 +157,12 @@
                 </table>
             </div>
             <div style="display: flex; gap: 16px; margin-top: 32px;">
-                <button class="m3-btn-filled" style="flex:1; background: var(--lt-navy);">📄 GENERAR PDF</button>
-                <button class="m3-btn-filled" style="flex:1;">📊 EXPORTAR EXCEL</button>
+                <button id="btn-export-pdf" class="btn-export btn-pdf" style="flex:1;">
+                    <i class="fas fa-file-pdf"></i> GENERAR PDF
+                </button>
+                <button id="btn-export-excel" class="btn-export btn-excel" style="flex:1;">
+                    <i class="fas fa-file-excel"></i> EXPORTAR EXCEL
+                </button>
             </div>
         </main>
     </section>
@@ -203,6 +207,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=1.6"></script>
+    <script src="app.js?v=1.7"></script>
 </body>
 </html>

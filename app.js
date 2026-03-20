@@ -1,13 +1,17 @@
-console.log("App v1.6 starting...");
+console.log("App v1.7 starting...");
 const state = {
     currentUser: null,
     currentReport: null,
-    reports: [],
+    reports: JSON.parse(localStorage.getItem('itse_reports')) || [],
     users: [
         { user: 'admin', pass: 'admin', role: 'admin', name: 'Administrador' },
         { user: 'arq1', pass: '123', role: 'architect', name: 'Arq. Juan Perez' },
         { user: 'elec1', pass: '123', role: 'electrical', name: 'Ing. Maria Lopez' }
-    ]
+    ],
+    save: function() {
+        localStorage.setItem('itse_reports', JSON.stringify(this.reports));
+        console.log("Data persisted to LocalStorage");
+    }
 };
 
 // --- Navigation ---
@@ -90,23 +94,29 @@ function renderObservations() {
     const feed = document.getElementById('console-feed');
     feed.innerHTML = state.currentReport.observations.length === 0 ? '<p style="text-align:center; padding:40px; opacity:0.3;">Tome una foto o dicte una observación para comenzar.</p>' : '';
     
-    state.currentReport.observations.forEach(obs => {
+    state.currentReport.observations.forEach((obs, index) => {
         const item = document.createElement('div');
         item.className = 'm3-card';
         let imgHtml = obs.image ? `<img src="${obs.image}" class="obs-img-thumb" alt="Evidencia">` : '';
         item.innerHTML = `
             ${imgHtml}
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <strong style="color:var(--lt-navy);">Norma: ${obs.norma}</strong>
-                <span class="m3-badge" style="background:#fce8e6; color:#b3261e; font-weight:800;">Riesgo ${obs.risk}</span>
+                <div style="flex:1;">
+                    <label style="font-size:0.7rem; color:var(--lt-navy); display:block; margin-bottom:2px; font-weight:700;">NORMA APLICABLE:</label>
+                    <input type="text" value="${obs.norma}" 
+                           style="border:1px dashed #ccc; background:#fff; font-weight:800; color:var(--lt-navy); width:100%; padding:4px 8px; border-radius:4px;"
+                           onblur="state.currentReport.observations[${index}].norma = this.value; state.save();">
+                </div>
+                <span class="m3-badge" style="background:#fce8e6; color:#b3261e; font-weight:800; margin-left:10px;">Riesgo ${obs.risk}</span>
             </div>
             <p style="margin:12px 0; font-size:1.1rem; line-height:1.4;">${obs.description}</p>
             <div style="background:#f8f9fa; padding:12px; border-radius:12px; border-left:4px solid var(--lt-blue-light); margin-bottom:16px;">
                  <p style="font-size:0.85rem; color:#555;">💡 <b>Recomendación sugerida:</b></p>
-                 <p style="font-size:0.9rem; color:var(--lt-navy); margin-top:4px;">${obs.recommendation}</p>
+                 <textarea style="border:1px dashed #ccc; background:#fff; width:100%; font-size:0.9rem; color:var(--lt-navy); margin-top:4px; padding:8px; border-radius:4px; resize:none;"
+                           onblur="state.currentReport.observations[${index}].recommendation = this.value; state.save();">${obs.recommendation}</textarea>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:8px;">
-                <button class="m3-btn-text" style="color:var(--lt-navy); font-size:0.8rem;" onclick="editObservation(${obs.id})">✏️ EDITAR</button>
+                <button class="m3-btn-text" style="color:var(--lt-navy); font-size:0.8rem;" onclick="editObservation(${obs.id})">✏️ RE-EDITAR</button>
                 <button class="m3-btn-text" style="color:var(--md-sys-color-error); font-size:0.8rem;" onclick="deleteObservation(${obs.id})">🗑️ BORRAR</button>
             </div>
         `;
@@ -117,6 +127,7 @@ function renderObservations() {
 window.deleteObservation = (id) => {
     if (confirm("¿Eliminar este hallazgo?")) {
         state.currentReport.observations = state.currentReport.observations.filter(o => o.id !== id);
+        state.save();
         renderObservations();
     }
 };
@@ -158,14 +169,37 @@ document.getElementById('btn-save-obs').addEventListener('click', () => {
     state.tempPhoto = null; 
     document.getElementById('image-preview-container').style.display = 'none';
     document.getElementById('obs-description').value = '';
+    
+    // Auto-stop dictation if active
+    if (document.getElementById('btn-voice').classList.contains('active')) {
+        document.getElementById('btn-voice').click();
+    }
+    
+    state.save(); // Save every observation
     renderObservations();
     
-    // Simulate AI Processing
-    setTimeout(() => {
-        obs.norma = "RNE Art. 10.2";
-        obs.recommendation = "Instalar señalización reflectante a 1.50m.";
+    // LLAMADA AL BACKEND REAL (Agente Simplificado)
+    fetch('http://localhost:8000/analyze-finding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            description: desc,
+            role: state.currentUser.role,
+            image_base64: obs.image
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        obs.norma = data.norma;
+        obs.recommendation = data.recommendation;
+        obs.risk = data.risk;
+        state.save();
         renderObservations();
-    }, 1500);
+    })
+    .catch(err => {
+        console.error("Error llamando al supervisor:", err);
+        // Fallback or keep "Analizando..."
+    });
 });
 
 // --- Camera / Photo Logic ---
@@ -188,30 +222,28 @@ cameraInput.addEventListener('change', function() {
             previewImg.src = base64;
             previewContainer.style.display = 'block';
             
-            // Suggest Observation (AI Simulation)
-            const desc = document.getElementById('obs-description');
-            const suggestions = {
-                architect: [
-                    "Se observa deficiencia en los acabados del muro perimetral.",
-                    "Falta de señalización de evacuación en pasadizo principal.",
-                    "Obstrucción de pasillos con mobiliario excedente."
-                ],
-                electrical: [
-                    "Tablero eléctrico con cables expuestos y sin tapa de protección.",
-                    "Luminarias de emergencia sin funcionamiento tras prueba.",
-                    "Falta de pozo a tierra certificado para equipos críticos."
-                ]
-            };
-            const roleSuggestions = suggestions[state.currentUser.role] || suggestions.architect;
-            const randomSuggest = roleSuggestions[Math.floor(Math.random() * roleSuggestions.length)];
+            // REEMPLAZO: Llamar a la IA de Visión real encargada del análisis
+            fetch('http://localhost:8000/describe-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    image_base64: base64,
+                    role: state.currentUser.role
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                desc.value = data.description;
+                desc.classList.add('is-simulated');
+                desc.style.background = '#f1f8e9'; // Verde suave para indicar éxito de IA
+                setTimeout(() => desc.style.background = 'white', 1000);
+            })
+            .catch(err => {
+                console.error("Error en análisis de visión:", err);
+                desc.value = "Se requiere descripción manual.";
+            });
             
-            desc.value = randomSuggest;
-            desc.classList.add('is-simulated');
-            // Visual feedback for the suggestion
-            desc.style.border = '2px solid var(--lt-blue-light)';
-            setTimeout(() => desc.style.border = '2px solid transparent', 1000);
-            
-            console.log("Photo preview active with AI suggestion");
+            console.log("Photo analysis requested to backend");
         };
         reader.readAsDataURL(file);
     }
@@ -231,8 +263,9 @@ document.getElementById('obs-description').addEventListener('focus', function() 
     }
 });
 
-// --- Voice Transcription (Real-time Gemini Style) ---
+// --- Voice Transcription (Refined "Definitive" Solution) ---
 let recognition;
+let baseText = ''; 
 const previewArea = document.getElementById('transcription-preview');
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -243,48 +276,45 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognition.lang = 'es-PE';
     
     recognition.onresult = (event) => {
-        let interimTranscript = '';
+        let sessionFinal = '';
+        let interim = '';
         const textarea = document.getElementById('obs-description');
         
-        // v1.6 Precise Buffer Strategy:
-        // We accumulate only results that are marked as 'final' and haven't been added yet.
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            const transcript = event.results[i][0].transcript;
+        // Reconstruimos el texto de la sesión actual sin duplicados
+        for (let i = 0; i < event.results.length; ++i) {
             if (event.results[i].isFinal) {
-                // To avoid duplication, we check if the current value already ends with this transcript fragment
-                // or if it was already processed in this recognition session.
-                const currentText = textarea.value.trim();
-                const cleanFragment = transcript.trim();
-                
-                if (!currentText.toLowerCase().endsWith(cleanFragment.toLowerCase())) {
-                    textarea.value = (currentText ? currentText + ' ' : '') + cleanFragment + ' ';
-                }
+                sessionFinal += event.results[i][0].transcript;
             } else {
-                interimTranscript += transcript;
+                interim += event.results[i][0].transcript;
             }
         }
         
-        previewArea.innerHTML = `<span class="interim-text">${interimTranscript}</span>`;
+        // El valor final es el texto que ya estaba + lo dictado (final e interim)
+        textarea.value = (baseText + ' ' + sessionFinal + ' ' + interim).replace(/\s+/g, ' ').trim();
+        previewArea.innerHTML = `<span class="interim-text">${interim}</span>`;
         textarea.scrollTop = textarea.scrollHeight;
     };
 
     recognition.onend = () => {
         previewArea.innerHTML = '';
+        baseText = document.getElementById('obs-description').value; // Update base for next session
     };
 }
 
 document.getElementById('btn-voice').addEventListener('click', function() {
     const isRecording = this.classList.toggle('active');
+    const textarea = document.getElementById('obs-description');
+    
     if (isRecording) {
+        baseText = textarea.value; // Store current text
         recognition.start();
         this.innerHTML = '🛑 DETENER';
-        this.classList.add('m3-btn-navy'); // Professional Navy for stop
-        previewArea.innerHTML = '<i>Escuchando...</i>';
+        this.classList.add('recording'); 
     } else {
         recognition.stop();
         this.innerHTML = '🎤 DICTAR';
-        this.classList.remove('m3-btn-navy');
-        previewArea.innerHTML = '';
+        this.classList.remove('recording');
+        setTimeout(() => textarea.focus(), 150);
     }
 });
 
@@ -292,21 +322,46 @@ document.getElementById('btn-voice').addEventListener('click', function() {
 document.getElementById('btn-finish-report').addEventListener('click', () => openDialog('dialog-confirm'));
 
 document.getElementById('btn-confirm-finish').addEventListener('click', () => {
-    state.reports.push(state.currentReport);
+    // Check if editing an existing report or saving new
+    const existingIndex = state.reports.findIndex(r => r.id === state.currentReport.id);
+    if (existingIndex > -1) {
+        state.reports[existingIndex] = state.currentReport;
+    } else {
+        state.reports.push(state.currentReport);
+    }
+    
+    state.save(); // Persist to localStorage
     closeDialog('dialog-confirm');
     renderPreview();
     showScreen('preview');
+    renderReports(); // Update dashboard list
 });
 
 function renderPreview() {
     const r = state.currentReport;
     document.getElementById('preview-header').innerHTML = `
-        <h2 style="color:var(--lt-navy); font-weight:800; font-size:1.8rem;">${r.site}</h2>
+        <h2 style="color:var(--lt-navy); font-weight:800; font-size:1.8rem; margin-top:20px;">${r.site}</h2>
         <p style="margin-top:8px;"><b>Inspector:</b> ${r.inspector} | <b>Fecha:</b> ${r.date}</p>
         <p><b>Dirección:</b> ${r.address}</p>
     `;
     
-    let tableHtml = `
+    const tbody = document.createElement('tbody');
+    r.observations.forEach((o, index) => {
+        const tr = document.createElement('tr');
+        const imgTag = o.image ? `<img src="${o.image}" class="report-table-img">` : '<div style="font-size:0.6rem; opacity:0.3;">Sin foto</div>';
+        
+        tr.innerHTML = `
+            <td style="text-align:center;">${imgTag}</td>
+            <td contenteditable="true" class="editable-cell" onblur="updateObservationData(${index}, 'description', this.innerText)">${o.description}</td>
+            <td contenteditable="true" class="editable-cell" onblur="updateObservationData(${index}, 'norma', this.innerText)">${o.norma}</td>
+            <td contenteditable="true" class="editable-cell" onblur="updateObservationData(${index}, 'recommendation', this.innerText)">${o.recommendation}</td>
+            <td><span class="m3-badge" style="background:#fce8e6; color:#b3261e; scale:0.8;">${o.risk}</span></td>
+        `;
+        tbody.appendChild(tr);
+    });
+    
+    const table = document.getElementById('preview-table');
+    table.innerHTML = `
         <thead>
             <tr>
                 <th>Foto</th>
@@ -316,24 +371,37 @@ function renderPreview() {
                 <th>Riesgo</th>
             </tr>
         </thead>
-        <tbody>
     `;
-    
-    r.observations.forEach(o => {
-        const imgTag = o.image ? `<img src="${o.image}" class="report-table-img">` : '<div style="font-size:0.6rem; opacity:0.3;">Sin foto</div>';
-        tableHtml += `
-            <tr>
-                <td style="text-align:center;">${imgTag}</td>
-                <td>${o.description}</td>
-                <td><span style="font-family:monospace; font-size:0.8rem;">${o.norma}</span></td>
-                <td>${o.recommendation}</td>
-                <td><span class="m3-badge" style="background:#fce8e6; color:#b3261e; scale:0.8;">${o.risk}</span></td>
-            </tr>
-        `;
-    });
-    tableHtml += '</tbody>';
-    document.getElementById('preview-table').innerHTML = tableHtml;
+    table.appendChild(tbody);
 }
+
+window.updateObservationData = (index, field, value) => {
+    state.currentReport.observations[index][field] = value;
+    console.log(`Updated obs ${index} field ${field}`);
+};
+
+// --- Export Logic ---
+document.getElementById('btn-export-pdf').addEventListener('click', () => {
+    window.print();
+});
+
+document.getElementById('btn-export-excel').addEventListener('click', () => {
+    const r = state.currentReport;
+    let csv = "ID,Fecha,Sede,Hallazgo,Norma,Recomendacion,Riesgo\n";
+    r.observations.forEach(o => {
+        csv += `${r.id},${r.date},"${r.site}","${o.description}","${o.norma}","${o.recommendation}",${o.risk}\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `Informe_${r.site.replace(/\s+/g, '_')}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+});
 
 document.getElementById('btn-close-preview').addEventListener('click', () => showScreen('dashboard'));
 

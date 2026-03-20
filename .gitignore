@@ -1,0 +1,10 @@
+.env
+__pycache__/
+.venv/
+node_modules/
+tests/results/
+tests/test-results/
+playwright-report/
+out.txt
+err.txt
+*.pyc

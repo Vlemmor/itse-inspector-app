@@ -1,0 +1,38 @@
+{
+    "arquitectura": [
+        {
+            "id": "RNE-G.040",
+            "name": "RNE G.040 - Señalización de Seguridad",
+            "scenarios": ["carteles", "señales", "luces de emergencia", "evacuación"],
+            "recommendation": "Instalar señalización fotoluminiscente según norma técnica peruana."
+        },
+        {
+            "id": "RNE-A.010",
+            "name": "RNE A.010 - Condiciones Generales de Diseño",
+            "scenarios": ["pasillos", "escaleras", "puertas", "anchos"],
+            "recommendation": "El ancho mínimo de pasillos debe ser de 1.20m para edificaciones comerciales."
+        }
+    ],
+    "electrico": [
+        {
+            "id": "CNE-UTIL-030",
+            "name": "CNE Utilización - Regla 030-002",
+            "scenarios": ["cables expuestos", "empalmes", "conductores"],
+            "recommendation": "Los conductores deben estar debidamente aislados y protegidos mediante canalizaciones."
+        },
+        {
+            "id": "CNE-TAB-150",
+            "name": "CNE - Tableros de Distribución",
+            "scenarios": ["tablero", "interruptor", "llave térmica", "identificación"],
+            "recommendation": "El tablero debe contar con su respectivo rotulado y el mandil de protección."
+        }
+    ],
+    "seguridad": [
+        {
+            "id": "NFPA-10",
+            "name": "NFPA 10 - Extintores Portátiles",
+            "scenarios": ["extintor", "carga", "manómetro", "vencimiento"],
+            "recommendation": "El extintor debe estar cargado y con la tarjeta de control vigente."
+        }
+    ]
+}
