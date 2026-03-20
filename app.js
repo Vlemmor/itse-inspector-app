@@ -222,7 +222,15 @@ cameraInput.addEventListener('change', function() {
             previewImg.src = base64;
             previewContainer.style.display = 'block';
             
-            // REEMPLAZO: Llamar a la IA de Visión real encargada del análisis
+            // Mostrar estado de carga en los nuevos campos
+            const iaSugg = document.getElementById('ia-suggestions');
+            const iaNorm = document.getElementById('ia-norm-hint');
+            const iaRec = document.getElementById('ia-rec-hint');
+            iaSugg.style.display = 'block';
+            iaNorm.innerText = 'Detectando...';
+            iaRec.innerText = 'Analizando...';
+
+            // REEMPLAZO: Llamar a la IA de Visión real encargada del análisis Integral
             fetch(`${backendBase}/describe-image`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -231,15 +239,29 @@ cameraInput.addEventListener('change', function() {
                     role: state.currentUser.role
                 })
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Error en el servidor de IA');
+                return res.json();
+            })
             .then(data => {
+                const desc = document.getElementById('obs-description');
                 desc.value = data.description;
-                desc.classList.add('is-simulated');
-                desc.style.background = '#f1f8e9'; // Verde suave para indicar éxito de IA
-                setTimeout(() => desc.style.background = 'white', 1000);
+                desc.style.border = '2px solid #4CAF50';
+                
+                // Actualizar sugerencias de IA
+                iaNorm.innerText = data.norma || 'RNE No especificada';
+                iaRec.innerText = data.recommendation || 'Sin recomendación sugerida';
+                
+                // Auto-seleccionar riesgo si viene de la IA
+                if (data.risk) {
+                    document.getElementById('obs-risk').value = data.risk;
+                }
             })
             .catch(err => {
-                console.error("Error en análisis de visión:", err);
+                console.error(err);
+                const desc = document.getElementById('obs-description');
+                iaNorm.innerText = 'Error de conexión';
+                iaRec.innerText = 'No se pudo contactar con el Supervisor IA de la laptop.';
                 desc.value = "Se requiere descripción manual.";
             });
             

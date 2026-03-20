@@ -83,7 +83,7 @@ def inspector_node(state: AgentState):
         print(f"--- ERROR CRITICO EN AGENT_SYSTEM ---")
         traceback.print_exc()
         state['normative_id'] = "RNE (Error de Análisis)"
-        state['recommendation'] = f"Error: {str(e)[:50]}... Revisar logs del servidor."
+        state['recommendation'] = f"Error: {str(e)}... Revisar logs del servidor."
         state['risk_level'] = "medio"
         
     state['results'].append(f"Análisis IA: {state['normative_id']}")

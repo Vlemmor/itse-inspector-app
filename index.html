@@ -127,7 +127,14 @@
                 <button id="btn-clear-image" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-weight: bold;">✕</button>
             </div>
 
-            <textarea id="obs-description" class="m3-input-field" placeholder="Escriba o dicte el hallazgo..." style="height: 90px; resize: none; margin-bottom: 20px; border-radius: 12px;"></textarea>
+            <textarea id="obs-description" class="m3-input-field" placeholder="Escriba o dicte el hallazgo..." style="height: 90px; resize: none; margin-bottom: 8px; border-radius: 12px;"></textarea>
+            
+            <!-- IA Live Suggestions -->
+            <div id="ia-suggestions" style="display: none; margin-bottom: 16px; background: #f0f7ff; padding: 12px; border-radius: 12px; border: 1px dashed var(--lt-blue-royal);">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--lt-navy); margin-bottom: 4px;">🛡️ SUGERENCIA IA</div>
+                <div id="ia-norm-hint" style="font-size: 0.85rem; font-weight: 700; color: var(--lt-blue-royal); margin-bottom: 2px;">Detectando norma...</div>
+                <div id="ia-rec-hint" style="font-size: 0.8rem; color: #555; line-height: 1.2;">Analizando recomendación...</div>
+            </div>
             
             <div style="display: flex; gap: 12px; align-items: center;">
                 <select id="obs-risk" class="m3-input-field" style="margin:0; flex:1; height: 56px; border-radius: 12px;">

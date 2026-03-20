@@ -66,15 +66,30 @@ class ImageDescriptionRequest(BaseModel):
     image_base64: str
     role: str
 
+from agent_system import app as agent_app
+
 @app.post("/describe-image")
 async def describe_image(req: ImageDescriptionRequest):
     """
-    Uses Gemini Vision to describe an inspection photo.
+    1. Usar VLM para describir la foto.
+    2. Usar el Agente de Inspección para obtener Norma, Recomendación y Riesgo.
     """
     try:
-        description = analyze_image_with_role(req.image_base64, req.role)
-        return {"description": description}
+        # Paso 1: Visión
+        suggested_desc = analyze_image_with_role(req.image_base64, req.role)
+        
+        # Paso 2: Análisis Técnico (LangGraph)
+        inputs = {"task": suggested_desc, "results": [], "current_step": "inspector"}
+        final_state = agent_app.invoke(inputs)
+        
+        return {
+            "description": suggested_desc,
+            "norma": final_state.get('normative_id'),
+            "recommendation": final_state.get('recommendation'),
+            "risk": final_state.get('risk_level')
+        }
     except Exception as e:
+        print(f"Error en describe_image integral: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
